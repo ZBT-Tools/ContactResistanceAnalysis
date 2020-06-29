@@ -2,11 +2,12 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 
-def plotData(meas):
+
+def plot_data(meas):
 
     print(meas)
-    df_data = pd.read_csv('cr_library.csv')
-    df_data.rename(index={2: 'Messung'})
+    df_data = pd.read_csv('cr_library.csv', sep='\t')
+    # df_data.rename(index={2: 'Messung'})
     df_data = df_data[df_data['Messung'] == meas]
     print(df_data)
 
@@ -42,16 +43,18 @@ def plotData(meas):
         res_cr = (res_g - df_t2['R_bulk / mOhm*cm²']) / 2
         resistance_mean.append(res_cr.mean())
         resistance_error.append(res_cr.sem())
+
     resistance_mean = np.asarray(resistance_mean)
     resistance_error = np.asarray(resistance_error)
 
-    plt.errorbar(pressures, resistance_mean, yerr=resistance_error, elinewidth=None, capsize=2, label=meas)
-
-    plt.xlabel('Contact Pressure / bar')
-    plt.ylabel('Contact Resistance / mOhm*cm²')
-    plt.title('Contact Resistance')
-    plt.legend()
-    plt.show()
+    #
+    # plt.errorbar(pressures, resistance_mean, yerr=resistance_error, elinewidth=None, capsize=2, label=meas)
+    #
+    # plt.xlabel('Contact Pressure / bar')
+    # plt.ylabel('Contact Resistance / mOhm*cm²')
+    # plt.title('Contact Resistance')
+    # plt.legend()
+    # plt.show()
 
     return pressures, resistance_mean
 
