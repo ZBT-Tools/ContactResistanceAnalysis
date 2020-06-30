@@ -13,19 +13,14 @@
       <path>
         <item name="ROOT" type="e8cecc67:BranchNodeDescriptor" />
         <item name="REMOTE_ROOT" type="e8cecc67:BranchNodeDescriptor" />
-        <item name="GROUP_NODE:github" type="e8cecc67:BranchNodeDescriptor" />
+        <item name="GROUP_NODE:origin" type="e8cecc67:BranchNodeDescriptor" />
       </path>
     </expand>
     <select />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="0e794601-0763-4d3e-9a62-9f76b8272492" name="Default Changelist" comment="fixing resistance plotting">
-      <change afterPath="$PROJECT_DIR$/.idea/encodings.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/testfile.txt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/gui_archive.py" beforeDir="false" afterPath="$PROJECT_DIR$/gui_archive.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/gui_main.py" beforeDir="false" afterPath="$PROJECT_DIR$/gui_main.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/test" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/test.txt" beforeDir="false" />
+    <list default="true" id="3a00555e-3509-4548-b1b6-d7b184a905ac" name="Default Changelist" comment="renaming">
+      <change beforePath="$PROJECT_DIR$/gui_doc.py" beforeDir="false" afterPath="$PROJECT_DIR$/gui_doc.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -324,10 +319,11 @@
       <screen x="0" y="0" width="1680" height="1010" />
     </state>
     <state width="829" height="336" key="GridCell.Tab.1.right/0.0.1680.1010@0.0.1680.1010" timestamp="1593444511918" />
-    <state x="201" y="141" width="998" height="708" key="SettingsEditor" timestamp="1593517701065">
-      <screen x="0" y="0" width="1680" height="1010" />
+    <state x="230" y="145" width="998" height="708" key="SettingsEditor" timestamp="1593520486458">
+      <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state x="201" y="141" width="998" height="708" key="SettingsEditor/0.0.1680.1010@0.0.1680.1010" timestamp="1593517701065" />
+    <state x="230" y="145" key="SettingsEditor/0.0.1920.1040@0.0.1920.1040" timestamp="1593520486458" />
     <state x="432" y="238" key="Vcs.Push.Dialog.v2" timestamp="1593446590426">
       <screen x="0" y="0" width="1680" height="1010" />
     </state>
