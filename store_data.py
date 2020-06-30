@@ -18,6 +18,7 @@ def store_library(file, date, sample, gdl, spec):
     # Drücke auf ganze Zahlen runden und in seperates Dataframe einfügen
 
     pressure_rounded = df_compl['p_Probe_Ist / bar'].round(decimals=0)
+    ampere_rounded = (df_compl['I_Ist / mA']/1000).round(decimals=1)
 
     # Umebennenung der Druckspalte mit gerundeten Werten
 
@@ -40,6 +41,7 @@ def store_library(file, date, sample, gdl, spec):
         samplespec = date + ' ' + sample + ' ' + gdl + ' ' + spec + ' ' + m
         df_t1.insert(1, 'Messung', samplespec, True)
         cr_name = 'Contact Resistance / mOhm*cm²'
+        cr_mean = 'Contact Resistance / mOhm*cm² - gemittelt'
         df_t1.insert(len(df_t1.columns), cr_name, 0.0, True)
         cr_error_name = 'Contact Resistance Error / mOhm*cm²'
         df_t1.insert(len(df_t1.columns), cr_error_name, 0.0)
@@ -62,12 +64,13 @@ def store_library(file, date, sample, gdl, spec):
                 res_cr_error
             resistance_mean.append(res_cr_mean)
             resistance_error.append(res_cr_error)
+
+            df_t1.loc[df_t1[pressure_rounded_name] == p, cr_mean] = res_cr_mean
+
         resistance_mean = np.asarray(resistance_mean)
         resistance_error = np.asarray(resistance_error)
-        plt.errorbar(pressures, resistance_mean, yerr=resistance_error,
-                     elinewidth=None, capsize=2, label=m)
 
-        # df_t1.insert(len(df_t1.columns), 'Contact Resistance / mOhm*cm²',
+            # df_t1.insert(len(df_t1.columns), 'Contact Resistance / mOhm*cm²',
         #              resistance_mean, True)
         # df_t1.insert(len(df_t1.columns),
         #              'Contact Resistance Error / mOhm*cm²', resistance_error)
@@ -81,6 +84,9 @@ def store_library(file, date, sample, gdl, spec):
                                        message='Messung bereits im Archiv')
         else:
             df_t1.to_csv(library_name, mode='w', header=True, sep='\t')
+
+        plt.errorbar(pressures, resistance_mean, yerr=resistance_error,
+                     elinewidth=None, capsize=2, label=m)
     # rowLabels = ['Date', 'Sample', 'GDL', 'Method']
     # cellText = [date, sample, gdl, spec]
     # plt.table(cellText=cellText, rowLoc='right', rowLabels=rowLabels, colWidths=[.5,.5], colLoc='center', loc='bottom', bbox = [0.1, 0, 0.9, 0.8])
