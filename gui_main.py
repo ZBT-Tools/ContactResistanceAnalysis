@@ -1,6 +1,6 @@
 import tkinter as tk
 from filedialog import get_file
-from gui_archive import open_archive
+# from gui_archive import open_archive
 
 menu = tk.Tk()
 menu.title("Menu")

@@ -57,18 +57,15 @@ def store_library(file, date, sample, gdl, spec):
             res_cr = (res_g - df_t2['R_bulk / mOhm*cm²']) / 2.0
             res_cr_mean = res_cr.mean()
             res_cr_error = res_cr.sem()
-            df_t1[df_t1[pressure_rounded_name] == p].at[cr_name] = res_cr
-            df_t1[df_t1[pressure_rounded_name] == p].at[cr_error_name] = \
+            df_t1.loc[df_t1[pressure_rounded_name] == p, cr_name] = res_cr
+            df_t1.loc[df_t1[pressure_rounded_name] == p, cr_error_name] = \
                 res_cr_error
             resistance_mean.append(res_cr_mean)
             resistance_error.append(res_cr_error)
         resistance_mean = np.asarray(resistance_mean)
         resistance_error = np.asarray(resistance_error)
-        print(df_t1[cr_name])
         plt.errorbar(pressures, resistance_mean, yerr=resistance_error,
                      elinewidth=None, capsize=2, label=m)
-        print(len(df_t1['Anpressfläche / cm²']))
-        print(len(resistance_mean))
 
         # df_t1.insert(len(df_t1.columns), 'Contact Resistance / mOhm*cm²',
         #              resistance_mean, True)
