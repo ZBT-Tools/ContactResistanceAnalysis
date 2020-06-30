@@ -18,8 +18,8 @@ def store_library(file, date, sample, gdl, spec):
     # Ermitteln der Druckmessreihe
     # Drücke auf ganze Zahlen runden und in seperates Dataframe einfügen
 
-    pressure_rounded = df_compl['p_Probe_Ist / bar'].round(decimals=0)
-    ampere_rounded = (df_compl['I_Ist / mA']/1000).round(decimals=1)
+    pressure_rounded = df_input['p_Probe_Ist / bar'].round(decimals=0)
+    ampere_rounded = (df_input['I_Ist / mA']/1000).round(decimals=1)
 
     # Name der Kommentarspalte
     commentary_name = 'Kommentar'
@@ -78,17 +78,17 @@ def store_library(file, date, sample, gdl, spec):
         plt.errorbar(pressures, resistance_mean, yerr=resistance_error,
                      elinewidth=None, capsize=2, label=m)
         df_list.append(df_t1)
-    df_input = pd.concat(df_list)
+    df_result = pd.concat(df_list)
     library_name = 'cr_library.csv'
     if os.path.isfile(library_name):
         with open(library_name, newline='') as file:
             if file.read().find(file_identifier) == -1:
-                df_input.to_csv(library_name, mode='a', header=False, sep='\t')
+                df_result.to_csv(library_name, mode='a', header=False, sep='\t')
             else:
                 tk.messagebox.showinfo(title='Redundanz',
                                        message='Datei bereits im Archiv')
     else:
-        df_input.to_csv(library_name, mode='w', header=True, sep='\t')
+        df_result.to_csv(library_name, mode='w', header=True, sep='\t')
 
     # Formatiere Plot
     table_data = [
