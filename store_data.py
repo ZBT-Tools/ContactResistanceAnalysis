@@ -16,6 +16,10 @@ def store_library(file, date, sample, gdl, spec):
     df_input = df_input[df_input['I_Ist / mA'] != 0]
 
     # Ermitteln der Druckmessreihe
+    # Drücke auf ganze Zahlen runden und in seperates Dataframe einfügen
+
+    pressure_rounded = df_compl['p_Probe_Ist / bar'].round(decimals=0)
+    ampere_rounded = (df_compl['I_Ist / mA']/1000).round(decimals=1)
 
     # Name der Kommentarspalte
     commentary_name = 'Kommentar'
@@ -41,6 +45,7 @@ def store_library(file, date, sample, gdl, spec):
         measurement_identifier = file_identifier + ' ' + m
         df_t1.insert(1, measurement_name, measurement_identifier, True)
         cr_name = 'Contact Resistance / mOhm*cm²'
+        cr_mean = 'Contact Resistance / mOhm*cm² - gemittelt'
         df_t1.insert(len(df_t1.columns), cr_name, 0.0, True)
         cr_error_name = 'Contact Resistance Error / mOhm*cm²'
         df_t1.insert(len(df_t1.columns), cr_error_name, 0.0)
@@ -65,6 +70,9 @@ def store_library(file, date, sample, gdl, spec):
                 res_cr_error
             resistance_mean.append(res_cr_mean)
             resistance_error.append(res_cr_error)
+
+            df_t1.loc[df_t1[pressure_rounded_name] == p, cr_mean] = res_cr_mean
+
         resistance_mean = np.asarray(resistance_mean)
         resistance_error = np.asarray(resistance_error)
         plt.errorbar(pressures, resistance_mean, yerr=resistance_error,
