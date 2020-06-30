@@ -1,13 +1,29 @@
 import tkinter as tk
 import pandas as pd
 import numpy as np
-import matplotlib.pyplot as plt
 import matplotlib
 
 from plot_data import plot_data
 matplotlib.use('TkAgg')
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from matplotlib.figure import Figure
+
+#archive window
+archive = tk.Tk()
+archive.title('Archive')
+archive.geometry('1000x1000')
+archive.grid_columnconfigure((0, 0), weight=1)
+
+#read library and get names of measurements
+df_lib = pd.read_csv('cr_library.csv', sep='\t')
+measurement_name = df_lib['Messung'].unique()
+
+#set startvalue and define optionmenu
+var = tk.StringVar(archive)
+var.set(measurement_name[0])
+option = tk.OptionMenu(archive, var, *measurement_name,
+                       command=lambda _: plotter2(var.get(), df_lib, archive))
+option.pack()
 
 
 def plotter(x, frame):
@@ -53,21 +69,12 @@ def plotter2(dropdown_var, df, frame):
     # fig.canvas.draw_idle()
 
 
-archive = tk.Tk()
-# frame = tk.Frame()
-archive.title('Archive')
-archive.geometry('1000x1000')
-archive.grid_columnconfigure((0, 0), weight=1)
 
-df_lib = pd.read_csv('cr_library.csv', sep='\t')
-# df_lib.rename(index={2: "Messung"})
-measurement_name = df_lib['Messung'].unique()
 
-var = tk.StringVar(archive)
-var.set(measurement_name[0])    # initial value
+    # initial value
 
-x = np.linspace(0, 10, 10)
-y = np.random.rand(10)
+# x = np.linspace(0, 10, 10)
+# y = np.random.rand(10)
 # fig = Figure(figsize=(50, 50))
 # ax = fig.add_subplot(111)
 # ax.scatter(x, y, color='red')
@@ -87,9 +94,7 @@ y = np.random.rand(10)
 # canvas.draw()
 # fig.canvas.draw_idle()
 
-option = tk.OptionMenu(archive, var, *measurement_name,
-                       command=lambda _: plotter2(var.get(), df_lib, archive))
-option.pack() # grid(row=0)# , columnspan=0)
+
 
 # fig = Figure(figsize=(200, 200))
 # a = fig.add_subplot(111)
