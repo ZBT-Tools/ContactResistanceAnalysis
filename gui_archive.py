@@ -26,24 +26,24 @@ option = tk.OptionMenu(archive, var, *measurement_name,
 option.pack()
 
 
-def plotter(x, frame):
-    fig = Figure(figsize=(50, 50))
-    ax = fig.add_subplot(111)
-    ax.scatter(plot_data(x)[0], plot_data(x)[1], color='red')
-    #a.plot(plotData(x)[0], plotData(x)[1], color='blue')
-    #a.scatter(plotData(var.get())[0], plotData(var.get())[1], color='red')
-    # a.plot(plotData(var.get())[0], plotData(var.get())[1], color='blue')
-
-    ax.set_xlabel('Contact Pressure / bar')
-    ax.set_ylabel('Contact Resistance / mOhm*cm²')
-    ax.set_title('Contact Resistance', fontsize = 16)
-
-    #graph = plt.errorbar(pressures, resistance_mean, yerr=resistance_error, elinewidth=None, capsize=2, label=meas)
-
-    canvas = FigureCanvasTkAgg(fig, master=frame)
-    #canvas.get_tk_widget().pack(side=tk.BOTTOM, fill=tk.BOTH, expand=True)
-    canvas.draw()
-    fig.canvas.draw_idle()
+# def plotter(x, frame):
+#     fig = Figure(figsize=(50, 50))
+#     ax = fig.add_subplot(111)
+#     ax.scatter(plot_data(x)[0], plot_data(x)[1], color='red')
+#     #a.plot(plotData(x)[0], plotData(x)[1], color='blue')
+#     #a.scatter(plotData(var.get())[0], plotData(var.get())[1], color='red')
+#     # a.plot(plotData(var.get())[0], plotData(var.get())[1], color='blue')
+#
+#     ax.set_xlabel('Contact Pressure / bar')
+#     ax.set_ylabel('Contact Resistance / mOhm*cm²')
+#     ax.set_title('Contact Resistance', fontsize = 16)
+#
+#     #graph = plt.errorbar(pressures, resistance_mean, yerr=resistance_error, elinewidth=None, capsize=2, label=meas)
+#
+#     canvas = FigureCanvasTkAgg(fig, master=frame)
+#     #canvas.get_tk_widget().pack(side=tk.BOTTOM, fill=tk.BOTH, expand=True)
+#     canvas.draw()
+#     fig.canvas.draw_idle()
 
 
 def plotter2(dropdown_var, df, frame):
