@@ -49,7 +49,8 @@ def store_library(file, date, sample, gdl, spec):
     # get unique values as lists --> measurements / pressures / cycles
     measurements = np.unique(df_input[commentary_name].to_numpy())
     pressures = np.unique(pressure_rounded.to_numpy(dtype=int))
-    cycles: Union[ndarray, Tuple[ndarray, Optional[ndarray], Optional[ndarray], Optional[ndarray]]] = np.unique(df_input['cycle'].to_numpy(dtype=int))
+    cycles = np.unique(df_input['cycle'].to_numpy(dtype=int))
+
 
     # create variable for storage in library -_> file_identifier
     file_identifier = date + ' ' + sample + ' ' + gdl + ' ' + spec
@@ -57,6 +58,7 @@ def store_library(file, date, sample, gdl, spec):
     # create empty df which will be filled with storage data
     df_list = []
 
+    fig, a = plt.subplots(1, 2)
 
     # seperate datafile into different measurements
     for m in measurements:
@@ -80,6 +82,15 @@ def store_library(file, date, sample, gdl, spec):
         cr_mean = 'Contact Resistance / mOhm*cm² - gemittelt'
         df_t1.insert(len(df_t1.columns), cr_mean, 0.0)
 
+        r_name = 'Gesamtwiderstand / mOhm*cm²'
+        df_t1.insert(len(df_t1.columns), r_name, 0.0)
+
+        r_mean = 'Gesamtwiderstand / mOhm*cm² - gemittelt'
+        df_t1.insert(len(df_t1.columns), r_mean, 0.0)
+
+        r_error_name = 'Gesamtwiderstand Error/ mOhm*cm²'
+        df_t1.insert(len(df_t1.columns), r_error_name, 0.0)
+
         # declare empty y-value list for plotting --> gdl degradation
         ref_res_mean = []
         ref_res_g_mean = []
@@ -93,6 +104,8 @@ def store_library(file, date, sample, gdl, spec):
             # declare empty y / y-error-value list for plotting --> contact res
             resistance_mean = []
             resistance_error = []
+            resistance_g_mean = []
+            resistance_g_error = []
 
             # seperate cycle-df into different pressures
             for p in pressures:
@@ -113,14 +126,23 @@ def store_library(file, date, sample, gdl, spec):
                 res_cr_mean = res_cr.mean()
                 res_cr_error = res_cr.sem()
 
+                res_g_mean = res_g.mean()
+                res_g_error = res_g.sem()
+
                 # write data --> cr-mean and cr-sem in df-slice
                 df_t3.loc[df_t3[pressure_rounded_name] == p, cr_name] = res_cr
                 df_t3.loc[df_t3[pressure_rounded_name] == p, cr_mean] = res_cr_mean
                 df_t3.loc[df_t3[pressure_rounded_name] == p, cr_error_name] = res_cr_error
+                df_t3.loc[df_t3[pressure_rounded_name] == p, r_name] = res_g
+                df_t3.loc[df_t3[pressure_rounded_name] == p, r_mean] = res_g_mean
+                df_t3.loc[df_t3[pressure_rounded_name] == p, r_error_name] = res_g_error
 
                 # append cr-mean and cr-sem values of single pressure to x,y plotdata
                 resistance_mean.append(res_cr_mean)
                 resistance_error.append(res_cr_error)
+
+                resistance_g_mean.append(res_g_mean)
+                resistance_g_error.append(res_g_error)
 
                 # df_t3.loc[df_t3[pressure_rounded_name] == p, cr_mean] = \
                 #     res_cr_mean
@@ -134,8 +156,20 @@ def store_library(file, date, sample, gdl, spec):
             resistance_mean = np.asarray(resistance_mean)
             resistance_error = np.asarray(resistance_error)
 
+            resistance_g_mean = np.asarray(resistance_g_mean)
+            resistance_g_error = np.asarray(resistance_g_error)
+
             # graph --> res_mean over p (every cycle seperate)
+
             #plt.errorbar(pressures, resistance_mean, yerr=resistance_error, elinewidth=None, capsize=2, label=m + str(c))
+            a[0].plot(pressures, resistance_g_mean)
+            a[0].set_title('Contact Resistance / Pressure')
+            a[0].set_xlabel('Pressure [bar]')
+            a[0].set_ylabel('Contact Resistance [mOhm*cm²]')
+            a[0].set_xlim([0, 30])
+            a[0].set_ylim([0, 50])
+
+
 
             df_t2_p = df_t2[df_t2[pressure_rounded_name] == 20]
 
@@ -162,14 +196,23 @@ def store_library(file, date, sample, gdl, spec):
 
         # graph --> res_mean over cylces (one specific pressure)
 
-        plt.plot(cycles, ref_res_g_mean, label = 'GDL Degradation')
+        # plt.subplot(122)
+        # plt.plot(cycles, ref_res_g_mean)
+        # plt.title('Contact Resistance / Measurement Cycle')
+        # plt.xlabel('Measurement Cycle')
+        # plt.ylabel('Contact Resistance [mOhm*cm²]')
 
+        a[1].plot(cycles, ref_res_g_mean)
+        a[1].set_title('Contact Resistance / Cycles [20bar]')
+        a[1].set_xlabel('Measurement Cycle')
+        a[1].set_ylabel('Contact Resistance [mOhm*cm²]')
+        a[1].set_xlim([0, 60])
+        a[1].set_ylim([0, 20])
+
+    plt.show()
 
     df_result = pd.concat(df_list)
     df_import = df_result.sort_values(by=['Uhrzeit'])
-
-
-
 
     library_name = 'cr_library.csv'
 
@@ -191,8 +234,8 @@ def store_library(file, date, sample, gdl, spec):
       ["Method", spec]
     ]
 
-    table = plt.table(cellText=table_data, colWidths=[.2, .5], loc='bottom',
-                      bbox=[0.49, 0.5, 0.5, 0.2])
+    # table = plt.table(cellText=table_data, colWidths=[.2, .5], loc='bottom',
+    #                   bbox=[0.49, 0.5, 0.5, 0.2])
 
     for (row, col), cell in table.get_celld().items():
         if col == 0:
