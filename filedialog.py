@@ -7,7 +7,8 @@ def get_file():
     filename = \
         tk.filedialog.askopenfilename(initialdir="C:/Users/Kapp/Desktop/CR/",
                                       title="Select file",
-                                      filetypes=(("Text files", "*.txt"),
-                                                 ("all files", "*.*")))
+                                      filetypes=(
+                                                 ("all files", "*.*"),
+                                                 ("Text files", "*.txt")))
     import_data(filename)
 
