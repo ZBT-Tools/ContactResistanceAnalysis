@@ -1,9 +1,13 @@
+from typing import Optional, Union, Tuple
+
 import matplotlib.pyplot as plt
 import pandas as pd
 import numpy as np
 import os
 import tkinter as tk
 from tkinter import messagebox
+
+from numpy.core._multiarray_umath import ndarray
 
 
 def store_library(file, date, sample, gdl, spec):
@@ -32,20 +36,20 @@ def store_library(file, date, sample, gdl, spec):
     rec = 0
     for i, v in df_input['p_Probe_Ist_rounded / bar'].items():
         if v >= rec:
-            #print(i)
-            df_input['cycle'].loc[i] = 'Zyklus ' + str(z)
+
+            df_input['cycle'].loc[i] = z
 
             if df_input.loc[v, 'I_Ist / mA'] < 600:
                 rec = v
         else:
             z += 1
             rec = 0
-            df_input['cycle'].iloc[i] = 'Zyklus ' + str(z)
+            df_input['cycle'].iloc[i] = z
 
     # get unique values as lists --> measurements / pressures / cycles
     measurements = np.unique(df_input[commentary_name].to_numpy())
     pressures = np.unique(pressure_rounded.to_numpy(dtype=int))
-    cycles = np.unique(df_input['cycle'].to_numpy())
+    cycles: Union[ndarray, Tuple[ndarray, Optional[ndarray], Optional[ndarray], Optional[ndarray]]] = np.unique(df_input['cycle'].to_numpy(dtype=int))
 
     # create variable for storage in library -_> file_identifier
     file_identifier = date + ' ' + sample + ' ' + gdl + ' ' + spec
@@ -77,7 +81,8 @@ def store_library(file, date, sample, gdl, spec):
         df_t1.insert(len(df_t1.columns), cr_mean, 0.0)
 
         # declare empty y-value list for plotting --> gdl degradation
-        ref_resistance_mean = []
+        ref_res_mean = []
+        ref_res_g_mean = []
 
         # seperate measurement-df into different cycles
         for c in cycles:
@@ -91,7 +96,6 @@ def store_library(file, date, sample, gdl, spec):
 
             # seperate cycle-df into different pressures
             for p in pressures:
-
 
                 # df-slice of cycle-df with single pressure
                 df_t3 = df_t2[df_t2[pressure_rounded_name] == p]
@@ -131,13 +135,34 @@ def store_library(file, date, sample, gdl, spec):
             resistance_error = np.asarray(resistance_error)
 
             # graph --> res_mean over p (every cycle seperate)
-            plt.errorbar(pressures, resistance_mean, yerr=resistance_error, elinewidth=None, capsize=2, label=m + c)
+            #plt.errorbar(pressures, resistance_mean, yerr=resistance_error, elinewidth=None, capsize=2, label=m + str(c))
+
+            df_t2_p = df_t2[df_t2[pressure_rounded_name] == 20]
+
+            # calculate --> overall resistance
+            cycle_res_g_20bar = (df_t2_p['U_ges-Th_U'] / df_t2_p['I_Ist / mA']) \
+                    * 1000.0 * df_t2_p['Anpressfläche / cm²']
+
+            # TODO: Hier muss res_g noch mittels korrekturfaktor anhand des GDL-Alters angepasst werden!
+
+            # calculate --> contact resistance
+
+            cycle_res_20bar = (cycle_res_g_20bar - df_t2['R_bulk / mOhm*cm²']) / 2.0
 
             # get mean resistance of cycle for specific pressure
-            cycle_resistance =
+            ref_res = cycle_res_20bar.mean()
+            ref_res_g = cycle_res_g_20bar.mean()
+
+            # append ref_res of cycle to y-value list
+            ref_res_mean.append(ref_res)
+            ref_res_g_mean.append(ref_res_g)
+
+        ref_res_mean = np.asarray(ref_res_mean)
+        ref_res_g_mean = np.asarray(ref_res_g_mean)
+
         # graph --> res_mean over cylces (one specific pressure)
 
-        plt.plot(cycles, ref_resistance_mean, label = 'GDL Degradation')
+        plt.plot(cycles, ref_res_g_mean, label = 'GDL Degradation')
 
 
     df_result = pd.concat(df_list)
