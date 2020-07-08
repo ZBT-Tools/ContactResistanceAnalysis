@@ -58,11 +58,10 @@ def store_library(file, date, sample, gdl, spec):
     # create empty df which will be filled with storage data
     df_list = []
 
-    fig, a = plt.subplots(1, 2)
+    fig, a = plt.subplots(2, 3)
 
     # seperate datafile into different measurements
     for m in measurements:
-
 
         # df-slice with single measurement
         df_t1 = df_input[df_input[commentary_name] == m]
@@ -71,6 +70,7 @@ def store_library(file, date, sample, gdl, spec):
         measurement_identifier = file_identifier + ' ' + m
 
         # add measurement_identifer / cr / cr_error / cr_mean to df
+        # TODO: rework for structures (those columns can be initalized earlier!)
         df_t1.insert(1, measurement_name, measurement_identifier, True)
 
         cr_name = 'Contact Resistance / mOhm*cm²'
@@ -91,27 +91,38 @@ def store_library(file, date, sample, gdl, spec):
         r_error_name = 'Gesamtwiderstand Error/ mOhm*cm²'
         df_t1.insert(len(df_t1.columns), r_error_name, 0.0)
 
-        # declare empty y-value list for plotting --> gdl degradation
-        ref_res_mean = []
-        ref_res_g_mean = []
+        r_bulk_name= 'Bulk-Widerstand / mOhm*cm²'
+        df_t1.insert(len(df_t1.columns), r_bulk_name, 0.0)
+
+        r_bulk_mean = 'Bulk-Widerstand / mOhm*cm² - gemittelt'
+        df_t1.insert(len(df_t1.columns), r_bulk_mean, 0.0)
+
+        r_bulk_error = 'Bulk-Widerstand Error/ mOhm*cm²'
+        df_t1.insert(len(df_t1.columns), r_bulk_error, 0.0)
+
+
 
         # seperate measurement-df into different cycles
         for c in cycles:
 
             # df-slice of measurement-df with single cycle
-            df_t2 = df_t1[df_t1['cycle'] == c]
+            df_t2_c = df_t1[df_t1['cycle'] == c]
 
             # declare empty y / y-error-value list for plotting --> contact res
             resistance_mean = []
             resistance_error = []
+
             resistance_g_mean = []
             resistance_g_error = []
+
+            resistance_bulk_mean = []
+            resistance_bulk_error = []
 
             # seperate cycle-df into different pressures
             for p in pressures:
 
                 # df-slice of cycle-df with single pressure
-                df_t3 = df_t2[df_t2[pressure_rounded_name] == p]
+                df_t3 = df_t2_c[df_t2_c[pressure_rounded_name] == p]
 
                 # calculate --> overall resistance
                 res_g = (df_t3['U_ges-Th_U'] / df_t3['I_Ist / mA']) \
@@ -119,6 +130,7 @@ def store_library(file, date, sample, gdl, spec):
 
                 # TODO: Hier muss res_g noch mittels korrekturfaktor anhand des GDL-Alters angepasst werden!
 
+                res_bulk = df_t3['R_bulk / mOhm*cm²']
                 # calculate --> contact resistance
                 res_cr = (res_g - df_t3['R_bulk / mOhm*cm²']) / 2.0
 
@@ -129,13 +141,21 @@ def store_library(file, date, sample, gdl, spec):
                 res_g_mean = res_g.mean()
                 res_g_error = res_g.sem()
 
+                res_bulk_mean = res_bulk.mean()
+                res_bulk_error = res_bulk.sem()
+
                 # write data --> cr-mean and cr-sem in df-slice
                 df_t3.loc[df_t3[pressure_rounded_name] == p, cr_name] = res_cr
                 df_t3.loc[df_t3[pressure_rounded_name] == p, cr_mean] = res_cr_mean
                 df_t3.loc[df_t3[pressure_rounded_name] == p, cr_error_name] = res_cr_error
+
                 df_t3.loc[df_t3[pressure_rounded_name] == p, r_name] = res_g
                 df_t3.loc[df_t3[pressure_rounded_name] == p, r_mean] = res_g_mean
                 df_t3.loc[df_t3[pressure_rounded_name] == p, r_error_name] = res_g_error
+
+                df_t3.loc[df_t3[pressure_rounded_name] == p, r_bulk_name] = res_bulk
+                df_t3.loc[df_t3[pressure_rounded_name] == p, r_bulk_mean] = res_bulk_mean
+                df_t3.loc[df_t3[pressure_rounded_name] == p, r_bulk_error] = res_bulk_error
 
                 # append cr-mean and cr-sem values of single pressure to x,y plotdata
                 resistance_mean.append(res_cr_mean)
@@ -143,6 +163,9 @@ def store_library(file, date, sample, gdl, spec):
 
                 resistance_g_mean.append(res_g_mean)
                 resistance_g_error.append(res_g_error)
+
+                resistance_bulk_mean.append(res_bulk_mean)
+                resistance_bulk_error.append(res_bulk_error)
 
                 # df_t3.loc[df_t3[pressure_rounded_name] == p, cr_mean] = \
                 #     res_cr_mean
@@ -153,63 +176,106 @@ def store_library(file, date, sample, gdl, spec):
                 df_list.append(df_t3)
 
             # forming x,y-value-lists into array
+            # TODO: implement error-bars in graphs
             resistance_mean = np.asarray(resistance_mean)
             resistance_error = np.asarray(resistance_error)
 
             resistance_g_mean = np.asarray(resistance_g_mean)
             resistance_g_error = np.asarray(resistance_g_error)
 
+            resistance_bulk_mean = np.asarray(resistance_bulk_mean)
+            resistance_bulk_error = np.asarray(resistance_bulk_error)
+
             # graph --> res_mean over p (every cycle seperate)
 
-            #plt.errorbar(pressures, resistance_mean, yerr=resistance_error, elinewidth=None, capsize=2, label=m + str(c))
-            a[0].plot(pressures, resistance_g_mean)
-            a[0].set_title('Contact Resistance / Pressure')
-            a[0].set_xlabel('Pressure [bar]')
-            a[0].set_ylabel('Contact Resistance [mOhm*cm²]')
-            a[0].set_xlim([0, 30])
-            a[0].set_ylim([0, 50])
+            # plt.errorbar(pressures, resistance_mean, yerr=resistance_error, elinewidth=None, capsize=2, label=m + str(c))
+
+            a[0][0].plot(pressures, resistance_g_mean, label = c)
+            a[0][0].set_title('Resistance / Pressure')
+            a[0][0].set_xlabel('Pressure [bar]')
+            a[0][0].set_ylabel('Resistance [mOhm*cm²]')
+            a[0][0].set_xlim([0, 30])
+            a[0][0].set_ylim([0, 50])
+            a[0][0].legend(bbox_to_anchor=(-0.55, 1, 0.4, 0), loc='upper left', mode='expand', ncol=3, fontsize='xx-small', title='Cycle')
+
+            a[0][1].plot(pressures, resistance_bulk_mean)
+            a[0][1].set_title('Bulk Resistance / Pressure')
+            a[0][1].set_xlabel('Pressure [bar]')
+            a[0][1].set_ylabel('Bulk Resistance [mOhm*cm²]')
+            a[0][1].set_xlim([0, 30])
+            a[0][1].set_ylim([0, 50])
+
+            a[0][2].plot(pressures, resistance_mean)
+            a[0][2].set_title('Contact Resistance / Pressure')
+            a[0][2].set_xlabel('Pressure [bar]')
+            a[0][2].set_ylabel('Contact Resistance [mOhm*cm²]')
+            a[0][2].set_xlim([0, 30])
+            a[0][2].set_ylim([-0.1, 0.1])
+
+        for p in pressures:
+
+            # declare empty y-value list for plotting --> gdl degradation
+            ref_res_mean = []
+            ref_res_g_mean = []
+            ref_bulk_mean = []
+
+            df_t2_p = df_t1[df_t1[pressure_rounded_name] == p]
+
+            for c in cycles:
+
+                df_t3_c = df_t2_p[df_t2_p['cycle'] == c]
+
+                # calculate --> overall resistance
+                cycle_res_g = (df_t3_c['U_ges-Th_U'] / df_t3_c['I_Ist / mA']) * 1000.0 * df_t2_p['Anpressfläche / cm²']
+
+                # TODO: Hier muss res_g noch mittels korrekturfaktor anhand des GDL-Alters angepasst werden!
+
+                # calculate --> contact resistance
+
+                cycle_res = (cycle_res_g - df_t3_c['R_bulk / mOhm*cm²']) / 2.0
+
+                cycle_res_bulk = df_t3_c['R_bulk / mOhm*cm²']
+
+                # get mean resistance of cycle for specific pressure
+                ref_res = cycle_res.mean()
+                ref_res_g = cycle_res_g.mean()
+                ref_res_bulk = cycle_res_bulk.mean()
+
+                # append ref_res of cycle to y-value list
+                ref_res_mean.append(ref_res)
+                ref_res_g_mean.append(ref_res_g)
+                ref_bulk_mean.append(ref_res_bulk)
+
+            ref_res_mean = np.asarray(ref_res_mean)
+            ref_res_g_mean = np.asarray(ref_res_g_mean)
+            ref_bulk_mean = np.asarray(ref_bulk_mean)
+
+            # graph --> res_mean over cylces (one specific pressure)
+
+            a[1][0].plot(cycles, ref_res_g_mean, label=p)
+            a[1][0].set_title('Resistance / Cycles')
+            a[1][0].set_xlabel('Measurement Cycle')
+            a[1][0].set_ylabel('Resistance [mOhm*cm²]')
+            a[1][0].set_xlim([0, 60])
+            a[1][0].set_ylim([0, 60])
+            a[1][0].legend(bbox_to_anchor=(-0.55, 1, 0.2, 0), loc='upper left',
+                           mode='expand', fontsize='small', title ='p [bar]')
+
+            a[1][1].plot(cycles, ref_bulk_mean)
+            a[1][1].set_title('Bulk-Resistance / Cycles')
+            a[1][1].set_xlabel('Measurement Cycle')
+            a[1][1].set_ylabel('Bulk-Resistance [mOhm*cm²]')
+            a[1][1].set_xlim([0, 60])
+            a[1][1].set_ylim([0, 60])
+
+            a[1][2].plot(cycles, ref_res_mean)
+            a[1][2].set_title('Contact Resistance / Cycles')
+            a[1][2].set_xlabel('Measurement Cycle')
+            a[1][2].set_ylabel('Contact Resistance [mOhm*cm²]')
+            a[1][2].set_xlim([0, 60])
+            a[1][2].set_ylim([-0.1, 0.1])
 
 
-
-            df_t2_p = df_t2[df_t2[pressure_rounded_name] == 20]
-
-            # calculate --> overall resistance
-            cycle_res_g_20bar = (df_t2_p['U_ges-Th_U'] / df_t2_p['I_Ist / mA']) \
-                    * 1000.0 * df_t2_p['Anpressfläche / cm²']
-
-            # TODO: Hier muss res_g noch mittels korrekturfaktor anhand des GDL-Alters angepasst werden!
-
-            # calculate --> contact resistance
-
-            cycle_res_20bar = (cycle_res_g_20bar - df_t2['R_bulk / mOhm*cm²']) / 2.0
-
-            # get mean resistance of cycle for specific pressure
-            ref_res = cycle_res_20bar.mean()
-            ref_res_g = cycle_res_g_20bar.mean()
-
-            # append ref_res of cycle to y-value list
-            ref_res_mean.append(ref_res)
-            ref_res_g_mean.append(ref_res_g)
-
-        ref_res_mean = np.asarray(ref_res_mean)
-        ref_res_g_mean = np.asarray(ref_res_g_mean)
-
-        # graph --> res_mean over cylces (one specific pressure)
-
-        # plt.subplot(122)
-        # plt.plot(cycles, ref_res_g_mean)
-        # plt.title('Contact Resistance / Measurement Cycle')
-        # plt.xlabel('Measurement Cycle')
-        # plt.ylabel('Contact Resistance [mOhm*cm²]')
-
-        a[1].plot(cycles, ref_res_g_mean)
-        a[1].set_title('Contact Resistance / Cycles [20bar]')
-        a[1].set_xlabel('Measurement Cycle')
-        a[1].set_ylabel('Contact Resistance [mOhm*cm²]')
-        a[1].set_xlim([0, 60])
-        a[1].set_ylim([0, 20])
-
-    plt.show()
 
     df_result = pd.concat(df_list)
     df_import = df_result.sort_values(by=['Uhrzeit'])
@@ -234,8 +300,10 @@ def store_library(file, date, sample, gdl, spec):
       ["Method", spec]
     ]
 
-    # table = plt.table(cellText=table_data, colWidths=[.2, .5], loc='bottom',
-    #                   bbox=[0.49, 0.5, 0.5, 0.2])
+    table = a[0][0].table(cellText=table_data, colWidths=[.2, .5], loc='bottom',
+                      bbox=[0.45, 0.75, 0.5, 0.2])
+
+
 
     for (row, col), cell in table.get_celld().items():
         if col == 0:
@@ -247,10 +315,6 @@ def store_library(file, date, sample, gdl, spec):
             cell._loc = 'right'
             cell.set_text_props(ma='right')
 
-    plt.xlabel('Contact Pressure / bar')
-    plt.ylabel('Contact Resistance / mOhm*cm²')
-    plt.title('Contact Resistance')
-    plt.legend()
     plt.show()
 
 
