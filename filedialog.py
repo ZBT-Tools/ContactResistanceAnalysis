@@ -5,10 +5,9 @@ from gui_doc import import_data
 
 def get_file():
     filename = \
-        tk.filedialog.askopenfilename(initialdir="C:/Users/Kapp/Desktop/CR/",
+        tk.filedialog.askopenfilename(initialdir="C:/Users/Kapp/Desktop/JKP_CR/",
                                       title="Select file",
                                       filetypes=(
                                                  ("all files", "*.*"),
                                                  ("Text files", "*.txt")))
     import_data(filename)
-

@@ -10,11 +10,11 @@ from matplotlib.figure import Figure
 
 #plot data for archive canvas
 def plotter2(dropdown_var, df, canvas):
-    df_data = df[df['Messung'] == dropdown_var]
-    df_data.sort_values(by=['p_Probe_Ist_rounded / bar'], inplace=True)
-    df_x = df_data['p_Probe_Ist_rounded / bar']
-    df_y_mean = df_data['Contact Resistance / mOhm*cm² - gemittelt']
-    df_y_scatter = df_data['Contact Resistance / mOhm*cm²']
+    df_data = df[df['measurement'] == dropdown_var]
+    df_data.sort_values(by=['pressure_rounded[bar]'], inplace=True)
+    df_x = df_data['pressure_rounded[bar]']
+    df_y_mean = df_data['resistance_mean[mOhm*cm2]']
+    df_y_scatter = df_data['resistance[mOhm*cm2]']
     #df_y = [rmean for rmean in df_data['Contact Resistance / mOhm*cm²'] ]
 
     ax.scatter(df_x, df_y_scatter, label=dropdown_var)

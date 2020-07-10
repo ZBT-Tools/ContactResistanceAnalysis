@@ -39,8 +39,14 @@ def plot_data(meas):
         res_g = (df_t2['U_ges-Th_U'] / df_t2['I_Ist / mA']) * 1000 * df_t2['Anpressfläche / cm²']
 
         #TODO: hier muss res_g noch mittels korrekturfaktor an Hand des GDL alters angepasst werden!
+        # cycle_res_bulk = (df_t3_c['U_Nadel-Th_U'] / df_t3_c[
+        #     'I_Ist / mA']) * 1000 * df_t3_c['Anpressfläche / cm²']
 
-        res_cr = (res_g - df_t2['R_bulk / mOhm*cm²']) / 2
+        res_cr = (((df_t2['U_ges-Th_U'] / df_t2['I_Ist / mA']) -
+                    (df_t2['U_Nadel-Th_U'] / df_t2['I_Ist / mA'])) / 2.0) \
+                    * 1000 * df_t2['Anpressfläche / cm²']
+
+        #res_cr = (res_g - df_t2['R_bulk / mOhm*cm²']) / 2
         resistance_mean.append(res_cr.mean())
         resistance_error.append(res_cr.sem())
 
