@@ -85,8 +85,7 @@ def create_archive():
     font = {'family': 'arial',
             'color': 'black',
             'weight': 'normal',
-            'size': 16,
-            }
+            'size': 16}
 
     ax = fig.add_subplot()
 
@@ -103,37 +102,47 @@ def create_archive():
     archive.mainloop()
 
 menu = tk.Tk()
-menu.title("Menu")
-menu.geometry("{}x{}".format(500, 500))
+menu.title("Contact Resistance Analysis")
+menu.geometry("{}x{}".format(500, 350))
+menu.maxsize(500, 350)
+menu.config(bg='lightgrey')
 
-top = Frame(menu, bg='cyan', width=100, height=500)
-center = Frame(menu, bg='blue', width=100, height=500)
+top = Frame(menu, bg='lightgrey', width=500, height=100)
+top.grid_propagate(0)
+center = Frame(menu, bg='grey', width=500, height=250)
+center.grid_propagate(0)
 
+menu.grid_rowconfigure(0, weight=1)
 menu.grid_rowconfigure(1, weight=1)
-menu.grid_columnconfigure(0, weight=1)
 
-top.grid(row=0, sticky='ew')
-top.grid(row=0, sticky='ew')
-center.grid(row=1, sticky='ew')
+top.grid(row=0)
+center.grid(row=1)
 
-button1 = tk.Button(top, text='Import new Measurement', width=50,
+#top.grid_rowconfigure(0, weight=1)
+#top.grid_rowconfigure(1, weight=1)
+#top.grid_columnconfigure(0, minsize=50, weight=1)
+#top.grid_columnconfigure(1, minsize=50, weight=1)
+
+button1 = tk.Button(top, text='Import new Measurement', width=40,
                     command=get_file)
 
-button2 = tk.Button(top, text='Open Archive', width=50,
+button2 = tk.Button(top, text='Open Archive', width=40,
                     command=lambda:create_archive())
 
+im_cr = Image.open('cr_test.png')
+im_zbt = Image.open('zbt.png')
 
-im = Image.open('cr_test.png')
+ph_cr = ImageTk.PhotoImage(im_cr.resize((200, 200), Image.ANTIALIAS))
+ph_zbt = ImageTk.PhotoImage(im_zbt.resize((100, 50), Image.ANTIALIAS))
 
-ph = ImageTk.PhotoImage(im.resize((200, 200), Image.ANTIALIAS))
+label_ph_cr = tk.Label(center, image=ph_cr, width=200, height=200)
+label_ph_zbt = tk.Label(top, image=ph_zbt, width=100, height=50)
 
+button1.grid(padx=(20, 0), pady=10, row=0, column=0, sticky='w')
+button2.grid(padx=(20, 0), pady=10, row=1, column=0, sticky='w')
 
-
-label = tk.Label(center, image=ph, width=200, height=200)
-
-button1.grid(padx=75, pady=10)
-button2.grid(padx=75, pady=10)
-label.grid(padx=150, pady=10)
+label_ph_cr.grid(padx=150, pady=10)
+label_ph_zbt.grid(padx=80, row=0, column=1, sticky='ne')
 
 menu.mainloop()
 

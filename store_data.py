@@ -8,6 +8,8 @@ from tkinter import messagebox
 
 def store_library(file, sample, gdl1, gdl2, spec, ref):
 
+    print(ref)
+
     # read datafile
     df_input = pd.read_csv(file, sep='\t', decimal=',', encoding='cp1252',
                            error_bad_lines=False)
@@ -136,56 +138,62 @@ def store_library(file, sample, gdl1, gdl2, spec, ref):
     pressures = np.unique(pressure_rounded.to_numpy(dtype=int))
     cycles = np.unique(df_input['cycle'].to_numpy(dtype=int))
 
-    if ref is not 'Referenz' and gdl1 == 'H23':
-        df_input.loc[(df_input['pressure_rounded[bar]'] <= 5) &
-                     (df_input['cycle'] <= 60), corr] = 15.3
-        df_input.loc[(df_input['pressure_rounded[bar]'] <= 10) &
-                     (df_input['cycle'] <= 60), corr] = 11.4
-        df_input.loc[(df_input['pressure_rounded[bar]'] <= 20) &
-                     (df_input['cycle'] <= 60), corr] = 8.2
-        df_input.loc[(df_input['pressure_rounded[bar]'] <= 30) &
-                     (df_input['cycle'] <= 60), corr] = 6.8
+    #if ref is not 'Referenz' and gdl1 == 'H23':
+    #     df_input.loc[(df_input['pressure_rounded[bar]'] <= 5) &
+    #                  (df_input['cycle'] <= 60), corr] = 15.3
+    #     df_input.loc[(df_input['pressure_rounded[bar]'] <= 10) &
+    #                  (df_input['cycle'] <= 60), corr] = 11.4
+    #     df_input.loc[(df_input['pressure_rounded[bar]'] <= 20) &
+    #                  (df_input['cycle'] <= 60), corr] = 8.2
+    #     df_input.loc[(df_input['pressure_rounded[bar]'] <= 30) &
+    #                  (df_input['cycle'] <= 60), corr] = 6.8
+    #
+    # if ref is not 'Referenz' and gdl2 == '29BC':
+    #     df_input.loc[(df_input['pressure_rounded[bar]'] <= 2.5) &
+    #                  (df_input['cycle'] <= 60), corr] = 30
+    #     df_input.loc[(df_input['pressure_rounded[bar]'] <= 5) &
+    #                  (df_input['cycle'] <= 60), corr] = 20
+    #     df_input.loc[(df_input['pressure_rounded[bar]'] <= 10) &
+    #                  (df_input['cycle'] <= 60), corr] = 15
+    #     df_input.loc[(df_input['pressure_rounded[bar]'] <= 20) &
+    #                  (df_input['cycle'] <= 60), corr] = 10
+    #     df_input.loc[(df_input['pressure_rounded[bar]'] <= 30) &
+    #                  (df_input['cycle'] <= 60), corr] = 7.5
+    #
+    # else:
+    #     df_input.loc[(df_input['pressure_rounded[bar]']) < 31 &
+    #                  (df_input['cycle'] <= 100), corr] = 0
 
-    if ref is not 'Referenz' and gdl2 == '29BC':
-        df_input.loc[(df_input['pressure_rounded[bar]'] <= 2.5) &
-                     (df_input['cycle'] <= 60), corr] = 30
-        df_input.loc[(df_input['pressure_rounded[bar]'] <= 5) &
-                     (df_input['cycle'] <= 60), corr] = 20
-        df_input.loc[(df_input['pressure_rounded[bar]'] <= 10) &
-                     (df_input['cycle'] <= 60), corr] = 15
-        df_input.loc[(df_input['pressure_rounded[bar]'] <= 20) &
-                     (df_input['cycle'] <= 60), corr] = 10
-        df_input.loc[(df_input['pressure_rounded[bar]'] <= 30) &
-                     (df_input['cycle'] <= 60), corr] = 7.5
+    #TODO: get correction to work!
+
+    if ref is not 'Referenz' and gdl1 == 'H23':
+
+        h23_ref = 'h23_reference.csv'
+        df_h23 = pd.read_csv(h23_ref, sep='\t', decimal=',', encoding='cp1252',
+                             error_bad_lines=False)
+
+        #ref_pressure_rounded = df_h23['pressure_sample[bar]'].round(decimals=0)
+        ref_pressures = np.unique(['pressure_rounded[bar'].to_numpy(dtype=int))
+
+        #print(df_h23[r_mean])
+        for c in cycles:
+            df_input_1 = df_input[df_input['cycle'] == c]
+            df_h23_1 = df_h23[df_h23['cycle'] == c]
+            #print(df_h23_1[r_mean])
+            for p in pressures:
+                df_input_2 = df_input_1[df_input_1['pressure_rounded[bar]'] == p]
+                df_h23_2 = df_h23_1[df_h23_1['pressure_rounded[bar]'] == p]
+                print(df_h23_2[r_mean])
+                correction_value = df_h23_2[r_mean]
+                print(correction_value)
+                df_input_2.loc[df_input_2['pressure_rounded[bar]'] == p, corr] = correction_value
+                df_corr_list.append(df_input_2)
+
+        df_input = pd.concat(df_corr_list)
 
     else:
         df_input.loc[(df_input['pressure_rounded[bar]']) < 31 &
                      (df_input['cycle'] <= 100), corr] = 0
-
-    #TODO: get correction to work!
-
-        # h23_ref = 'h23_reference.csv'
-        # df_h23 = pd.read_csv(h23_ref, sep='\t', decimal=',', encoding='cp1252',
-        #                      error_bad_lines=False)
-        #
-        # # ref_pressure_rounded = df_h23['pressure_sample[bar]'].round(decimals=0)
-        # # ref_pressures = np.unique(ref_pressure_rounded.to_numpy(dtype=int))
-        #
-        # #print(df_h23[r_mean])
-        # for c in cycles:
-        #     df_input_1 = df_input[df_input['cycle'] == c]
-        #     df_h23_1 = df_h23[df_h23['cycle'] == c]
-        #     #print(df_h23_1[r_mean])
-        #     for p in pressures:
-        #         df_input_2 = df_input_1[df_input_1['pressure_rounded[bar]'] == p]
-        #         df_h23_2 = df_h23_1[df_h23_1['pressure_rounded[bar]'] == p]
-        #         print(df_h23_2[r_mean])
-        #         correction_value = df_h23_2[r_mean]
-        #         print(correction_value)
-        #         df_input_2.loc[df_input_2['pressure_rounded[bar]'] == p, corr] = correction_value
-        #         df_corr_list.append(df_input_2)
-        #
-        # df_input = pd.concat(df_corr_list)
 
     # create variable for storage in library --> file_identifier
     file_identifier = ref + ' ' + sample + ' ' + gdl1+gdl2 + spec
@@ -250,10 +258,6 @@ def store_library(file, sample, gdl1, gdl2, spec, ref):
                 #res_cr = (res_g - df_t3[corr] - res_bulk) / 2.0
 
                 #res_cr = ((res_g - df_h23_cycle_pressure['Gesamtwiderstand / mOhm*cm2 - gemittelt']) - res_bulk) / 2.0
-                print(res_g)
-                print(corr)
-                print(res_bulk)
-                print(res_cr)
 
                 # get mean- and sem-value of calculated resistance
                 res_cr_mean = res_cr.mean()
