@@ -28,7 +28,7 @@ archive.grid_columnconfigure((0, 0), weight=1)
 
 #read library and get names of measurements
 df_lib = pd.read_csv('cr_library.csv', sep='\t')
-measurement_name = df_lib['Messung'].unique()
+measurement_name = df_lib['measurement'].unique()
 
 #set startvalue and define optionmenu
 var = tk.StringVar(archive)

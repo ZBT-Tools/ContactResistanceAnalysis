@@ -8,8 +8,6 @@ from tkinter import messagebox
 
 def store_library(file, sample, gdl1, gdl2, spec, ref):
 
-    print(ref)
-
     # read datafile
     df_input = pd.read_csv(file, sep='\t', decimal=',', encoding='cp1252',
                            error_bad_lines=False)
@@ -18,21 +16,6 @@ def store_library(file, sample, gdl1, gdl2, spec, ref):
 
     # format dataframe
     # deleting unnecessary columns
-    del df_input['R_ges / mOhm*cm²']
-    del df_input['R_bulk / mOhm*cm²']
-    del df_input['p_Kraftsensor / ?']
-    del df_input['Weg Bürster']
-    del df_input['Kraftsensor Poly']
-    del df_input['Probendicke Poly']
-    del df_input['Kraftsensor']
-    del df_input['Probendicke']
-    del df_input['U_ges 1']
-    del df_input['U_Nadel 1']
-    del df_input['U_ges 2']
-    del df_input['U_Nadel 2']
-    del df_input['Diff_U_ges/2']
-    del df_input['Diff_U_Nadel/2']
-    del df_input['Relais']
 
     df_input.drop(df_input.columns[[-1, ]], axis=1, inplace=True)
 
@@ -138,56 +121,35 @@ def store_library(file, sample, gdl1, gdl2, spec, ref):
     pressures = np.unique(pressure_rounded.to_numpy(dtype=int))
     cycles = np.unique(df_input['cycle'].to_numpy(dtype=int))
 
-    #if ref is not 'Referenz' and gdl1 == 'H23':
-    #     df_input.loc[(df_input['pressure_rounded[bar]'] <= 5) &
-    #                  (df_input['cycle'] <= 60), corr] = 15.3
-    #     df_input.loc[(df_input['pressure_rounded[bar]'] <= 10) &
-    #                  (df_input['cycle'] <= 60), corr] = 11.4
-    #     df_input.loc[(df_input['pressure_rounded[bar]'] <= 20) &
-    #                  (df_input['cycle'] <= 60), corr] = 8.2
-    #     df_input.loc[(df_input['pressure_rounded[bar]'] <= 30) &
-    #                  (df_input['cycle'] <= 60), corr] = 6.8
-    #
-    # if ref is not 'Referenz' and gdl2 == '29BC':
-    #     df_input.loc[(df_input['pressure_rounded[bar]'] <= 2.5) &
-    #                  (df_input['cycle'] <= 60), corr] = 30
-    #     df_input.loc[(df_input['pressure_rounded[bar]'] <= 5) &
-    #                  (df_input['cycle'] <= 60), corr] = 20
-    #     df_input.loc[(df_input['pressure_rounded[bar]'] <= 10) &
-    #                  (df_input['cycle'] <= 60), corr] = 15
-    #     df_input.loc[(df_input['pressure_rounded[bar]'] <= 20) &
-    #                  (df_input['cycle'] <= 60), corr] = 10
-    #     df_input.loc[(df_input['pressure_rounded[bar]'] <= 30) &
-    #                  (df_input['cycle'] <= 60), corr] = 7.5
-    #
-    # else:
-    #     df_input.loc[(df_input['pressure_rounded[bar]']) < 31 &
-    #                  (df_input['cycle'] <= 100), corr] = 0
-
     #TODO: get correction to work!
+
 
     if ref is not 'Referenz' and gdl1 == 'H23':
 
+        df_corr_list = []
+
         h23_ref = 'h23_reference.csv'
-        df_h23 = pd.read_csv(h23_ref, sep='\t', decimal=',', encoding='cp1252',
-                             error_bad_lines=False)
+        df_h23 = pd.read_csv(h23_ref)
 
-        #ref_pressure_rounded = df_h23['pressure_sample[bar]'].round(decimals=0)
-        ref_pressures = np.unique(['pressure_rounded[bar'].to_numpy(dtype=int))
 
-        #print(df_h23[r_mean])
+        #df_h23['pressure_sample[bar]'].round(decimals=0)
+        #ref_pressures = np.unique(df_h23['pressure_rounded[bar]'].to_numpy(dtype=float))
+        #print(df_h23[df_h23['cycle'] >= 59.0 and df_h23['cycle'] <= 60.0])
+        #print(df_h23['cycle'] == 60.0)
+
+
         for c in cycles:
             df_input_1 = df_input[df_input['cycle'] == c]
+            pd.option_context('display.max_columns', None)
             df_h23_1 = df_h23[df_h23['cycle'] == c]
-            #print(df_h23_1[r_mean])
+
             for p in pressures:
                 df_input_2 = df_input_1[df_input_1['pressure_rounded[bar]'] == p]
                 df_h23_2 = df_h23_1[df_h23_1['pressure_rounded[bar]'] == p]
-                print(df_h23_2[r_mean])
-                correction_value = df_h23_2[r_mean]
-                print(correction_value)
+                correction_value = df_h23_2[r_mean].mean()
                 df_input_2.loc[df_input_2['pressure_rounded[bar]'] == p, corr] = correction_value
                 df_corr_list.append(df_input_2)
+
 
         df_input = pd.concat(df_corr_list)
 
@@ -237,25 +199,28 @@ def store_library(file, sample, gdl1, gdl2, spec, ref):
             for p in pressures:
 
                 # df-slice of 'cycle'-df with single pressure
+
                 df_t3 = df_t2_c[df_t2_c['pressure_rounded[bar]'] == p]
 
                 # calculate --> overall resistance
+                # flächenspezifischer Gesamtwiderstand
                 res_g = (df_t3['voltage_th[mV]'] / df_t3['current[mA]']) * 1000.0 * df_t3['contact_area[cm2]']
 
-
-
+                # flächenspezifischer Bulkwiderstand
                 if spec == "m. Nadel":
                     res_bulk = (df_t3['voltage_needle[mV]'] / df_t3['current[mA]']) * 1000 * df_t3['contact_area[cm2]']
                 else:
                     res_bulk = df_t3[r_bulk_sub] / 1
 
+                # flächenspezifischer Durchgangswiderstand
                 res_through = ((df_t3['voltage_th[mV]'] / df_t3['current[mA]']) - (df_t3[corr]/1000)) * 1000 * df_t3['contact_area[cm2]']
 
                 # calculate --> contact resistance
 
-                res_cr = (((df_t3['voltage_th[mV]'] / df_t3['current[mA]']) -(df_t3[corr]/1000)-(df_t3['voltage_needle_th[mV]'] / df_t3['current[mA]'])) / 2.0) * 1000 * df_t3['contact_area[cm2]']
+                # flächenspezifischer Kontaktwiderstand
+                #res_cr = (((df_t3['voltage_th[mV]'] / df_t3['current[mA]']) -(df_t3[corr]/1000)) / 2.0) * 1000 * df_t3['contact_area[cm2]']
 
-                #res_cr = (res_g - df_t3[corr] - res_bulk) / 2.0
+                res_cr = (res_g - df_t3[corr] - res_bulk) / 2.0
 
                 #res_cr = ((res_g - df_h23_cycle_pressure['Gesamtwiderstand / mOhm*cm2 - gemittelt']) - res_bulk) / 2.0
 
@@ -429,12 +394,12 @@ def store_library(file, sample, gdl1, gdl2, spec, ref):
     if os.path.isfile(library_name):
         with open(library_name, newline='') as file:
             if file.read().find(file_identifier) == -1:
-                df_import2.to_csv(library_name, mode='a', header=False, sep='\t')
+                df_import2.to_csv(library_name, mode='a', header=False)
             else:
                 tk.messagebox.showinfo(title='Redundanz',
                                        message='Datei bereits im Archiv')
     else:
-        df_import2.to_csv(library_name, mode='w', header=True, sep='\t')
+        df_import2.to_csv(library_name, mode='w', header=True)
 
     # Formatiere Plot
     table_data = [
