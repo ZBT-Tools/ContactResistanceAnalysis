@@ -60,7 +60,7 @@ def plotter2(dropdown_var, df, canvas, subf1, subf2):
     #subf.plot(pressures, df_bulk_res_mean, label='Bulk Resistance')
 
     subf1.plot(pressures, df_contact_res_mean, linestyle='dashed', linewidth=3, marker='s', markersize=12,  label=meas)
-    subf2.bar(pressures, df_contact_res_mean, tick_label = meas, width = 0.8, color = ['red', 'green'])
+    subf2.bar(pressures, df_contact_res_mean, tick_label=meas, width=0.8, color =['red', 'green'])
     #subf.title('SGL 29BC')
     subf1.legend(loc='upper right')
     canvas.draw()
@@ -96,13 +96,15 @@ def create_archive():
     grid = fig.add_gridspec(10,10)
 
     fig_ax1 = fig.add_subplot(grid[:10, :-4])
-    fig_ax1.set_title('123')
+    fig_ax1.set_title('Contact Resistance')
+    fig_ax1.set_xlim([0, 21])
+    fig_ax1.set_ylim([0, 50])
 
     fig_ax2 = fig.add_subplot(grid[:5, 6:])
-    fig_ax2.set_title('345')
+    fig_ax2.set_title('CR @ 20bar')
 
     fig_ax3 = fig.add_subplot(grid[1:3, 3:5])
-    fig_ax3.set_title('789')
+    fig_ax3.set_title('Test')
 
     #fig, ax1 = plt.subplots(gridspec_kw=grid)
     #ax1.text(0.5, 0.5, 'Axes 1', ha='center', va='center', size=24, alpha=.5)
