@@ -15,17 +15,19 @@ from plot_data import plot_data
 matplotlib.use('TkAgg')
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 
-def plotter2(dropdown_var, df, canvas, subf1, subf2):
+def plotter2(dropdown_var, df, canvas, subf1, subf2, subf3, subf4, subf5):
     df_data = df[df['measurement'] == dropdown_var]
     meas = np.unique(df_data['measurement'].to_numpy())
+    x = str(meas).split()
+    bar_name = x[1]
     df_data.sort_values(by=['pressure_rounded[bar]'], inplace=True)
-    df_pressure = df_data['pressure_rounded[bar]']
     pressures = np.unique(df_data['pressure_rounded[bar]'].to_numpy(dtype=int))
 
     df_res_mean = []
     df_contact_res_mean = []
     df_volume_res_mean = []
     df_bulk_res_mean = []
+    df_bulk_vs_mean=[]
 
     for p in pressures:
 
@@ -33,12 +35,20 @@ def plotter2(dropdown_var, df, canvas, subf1, subf2):
         res_plot = df_data2['resistance_mean[mOhm*cm2]']
         contact_res_plot = df_data2['contact_resistance_mean[mOhm*cm2]']
         volume_res_plot = df_data2['volume_resistance_mean[mOhm*cm2]']
+        bulk_vs_plot = df_data2['volume-specific_bulk_value[S/cm]']
         bulk_res_plot = df_data2['bulk_resistance_mean[mOhm*cm2]']
 
         res_mean_plot = res_plot.mean()
         contact_res_mean_plot = contact_res_plot.mean()
         volume_res_mean_plot = volume_res_plot.mean()
         bulk_res_mean_plot = bulk_res_plot.mean()
+        bulk_vs_mean_plot = bulk_vs_plot.mean()
+
+        if p == 20:
+            cr_at_20bar = contact_res_mean_plot
+            vr_at_20bar = volume_res_mean_plot
+            br_at_20bar = bulk_res_mean_plot
+            bvs_at_20bar = bulk_vs_mean_plot
 
         df_res_mean.append(res_mean_plot)
         df_contact_res_mean.append(contact_res_mean_plot)
@@ -59,8 +69,12 @@ def plotter2(dropdown_var, df, canvas, subf1, subf2):
     #subf.plot(pressures, df_volume_res_mean, label='Volume Resistance')
     #subf.plot(pressures, df_bulk_res_mean, label='Bulk Resistance')
 
+
     subf1.plot(pressures, df_contact_res_mean, linestyle='dashed', linewidth=3, marker='s', markersize=12,  label=meas)
-    subf2.bar(pressures, df_contact_res_mean, tick_label=meas, width=0.8, color =['red', 'green'])
+    subf2.bar(bar_name, cr_at_20bar, width=1)
+    subf3.bar(bar_name, bvs_at_20bar, width=1)
+    subf4.bar(bar_name, cr_at_20bar, width=1)
+    subf5.bar(bar_name, vr_at_20bar, width=1)
     #subf.title('SGL 29BC')
     subf1.legend(loc='upper right')
     canvas.draw()
@@ -82,7 +96,7 @@ def create_archive():
     var.set(measurement_name[0])
     option = tk.OptionMenu(archive, var, *measurement_name,
                            command=lambda _: plotter2(var.get(), df_lib,
-                                                      plot_canvas, fig_ax1, fig_ax2))
+                                                      plot_canvas, fig_ax1, fig_ax2, fig_ax3, fig_ax4, fig_ax5))
     option.pack()
 
 
@@ -93,18 +107,24 @@ def create_archive():
             'size': 16}
 
     fig = Figure(figsize=(50, 50))
-    grid = fig.add_gridspec(10,10)
+    grid = fig.add_gridspec(12, 18)
 
-    fig_ax1 = fig.add_subplot(grid[:10, :-4])
+    fig_ax1 = fig.add_subplot(grid[:12, :-8])
     fig_ax1.set_title('Contact Resistance')
     fig_ax1.set_xlim([0, 21])
     fig_ax1.set_ylim([0, 50])
 
-    fig_ax2 = fig.add_subplot(grid[:5, 6:])
+    fig_ax2 = fig.add_subplot(grid[2:7, 4:10])
     fig_ax2.set_title('CR @ 20bar')
 
-    fig_ax3 = fig.add_subplot(grid[1:3, 3:5])
-    fig_ax3.set_title('Test')
+    fig_ax3 = fig.add_subplot(grid[:3, 12:])
+    fig_ax3.set_title('volumetrischer Bulk-Leitwert [S/cm]')
+
+    fig_ax4 = fig.add_subplot(grid[4:7, 12:])
+    fig_ax4.set_title('flächenspezifischer Durchgangswiderstand [mOhm*cm²]')
+
+    fig_ax5 = fig.add_subplot(grid[8:11, 12:])
+    fig_ax5.set_title('volumenspezifischer Durchgangswiderstand [Ohm*cm]')
 
     #fig, ax1 = plt.subplots(gridspec_kw=grid)
     #ax1.text(0.5, 0.5, 'Axes 1', ha='center', va='center', size=24, alpha=.5)

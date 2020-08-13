@@ -6,7 +6,7 @@ import tkinter as tk
 from tkinter import messagebox
 
 
-def store_library(file, sample, gdl1, gdl2, spec, ref):
+def store_library(file, sample, gdl1, gdl2, spec, ref, thickness):
 
     # read datafile
     df_input = pd.read_csv(file, sep='\t', decimal=',', encoding='cp1252',
@@ -18,12 +18,6 @@ def store_library(file, sample, gdl1, gdl2, spec, ref):
     # deleting unnecessary columns
 
     df_input.drop(df_input.columns[[-1, ]], axis=1, inplace=True)
-
-
-    # df_input.columns['date', 'time', 'commentary', 'pressure_sample[bar]',
-    #                  'current[mA]', 'voltage[mV]', 'voltage_needle[mV]',
-    #                  'voltage_th[mV]', 'voltage_needle_th[mV]',
-    #                  'contact_area[cm2]', 'pressure[bar]']
 
     # rename columns of remaining dataframe
     df_input.rename(columns={df_input.iloc[0,0]:'date', 'Uhrzeit':'time',
@@ -55,53 +49,162 @@ def store_library(file, sample, gdl1, gdl2, spec, ref):
     df_input.insert(len(df_input.columns), column='pressure_rounded[bar]',
                     value=pressure_rounded)
 
-    cr_name = 'contact_resistance[mOhm*cm2]'
-    df_input.insert(len(df_input.columns), cr_name, 0.0, True)
+    #Probendicke
+    sample_thickness = 'sample_thickness[mm]'
+    df_input.insert(len(df_input.columns), sample_thickness, 0.0)
 
-    cr_error_name = 'contact_resistance_error[mOhm*cm2]'
-    df_input.insert(len(df_input.columns), cr_error_name, 0.0)
+    #Gesamtwiderstand
+    res_main_col = 'main_resistance[mOhm]'
+    df_input.insert(len(df_input.columns), res_main_col, 0.0)
 
-    cr_mean = 'contact_resistance_mean[mOhm*cm2]'
-    df_input.insert(len(df_input.columns), cr_mean, 0.0)
+    res_main_mean_col = 'main_resistance_mean[mOhm]'
+    df_input.insert(len(df_input.columns), res_main_mean_col, 0.0)
 
-    r_name = 'resistance[mOhm*cm2]'
-    df_input.insert(len(df_input.columns), r_name, 0.0)
+    res_main_error_col = 'main_resistance_error[mOhm]'
+    df_input.insert(len(df_input.columns), res_main_error_col, 0.0)
 
-    r_mean = 'resistance_mean[mOhm*cm2]'
-    df_input.insert(len(df_input.columns), r_mean, 0.0)
+    #Durchgangswiderstand
+    res_through_col = 'flow_resistance[mOhm]'
+    df_input.insert(len(df_input.columns), res_through_col, 0.0)
 
-    r_error_name = 'resistance_error[mOhm*cm2]'
-    df_input.insert(len(df_input.columns), r_error_name, 0.0)
+    res_through_mean_col = 'flow_resistance_mean[mOhm]'
+    df_input.insert(len(df_input.columns), res_through_mean_col, 0.0)
 
-    r_bulk_name = 'bulk_resistance[mOhm*cm2]'
-    df_input.insert(len(df_input.columns), r_bulk_name, 0.0)
+    res_through_error_col = 'flow_resistance_error[mOhm]'
+    df_input.insert(len(df_input.columns), res_through_error_col, 0.0)
 
-    r_bulk_mean = 'bulk_resistance_mean[mOhm*cm2]'
-    df_input.insert(len(df_input.columns), r_bulk_mean, 0.0)
+    #Bulkwiderstand
+    res_bulk_col = 'bulk_resistance[mOhm]'
+    df_input.insert(len(df_input.columns), res_bulk_col, 0.0)
 
-    r_bulk_error = 'bulk_resistance_error[mOhm*cm2]'
-    df_input.insert(len(df_input.columns), r_bulk_error, 0.0)
+    res_bulk_mean_col = 'bulk_resistance_mean[mOhm]'
+    df_input.insert(len(df_input.columns), res_bulk_mean_col, 0.0)
 
-    r_bulk_sub = 'bulk_resistance_sub[mOhm*cm2]'
-    df_input.insert(len(df_input.columns), r_bulk_sub, 0.0)
+    res_bulk_error_col = 'bulk_resistance_error[mOhm]'
+    df_input.insert(len(df_input.columns), res_bulk_error_col, 0.0)
 
-    r_through = 'volume_resistance[mOhm*cm2]'
-    df_input.insert(len(df_input.columns), r_through, 0.0)
+    res_bulk_sub_col = 'bulk_resistance_sub[mOhm]'
+    df_input.insert(len(df_input.columns), res_bulk_sub_col, 0.0)
 
-    r_through_mean = 'volume_resistance_mean[mOhm*cm2]'
-    df_input.insert(len(df_input.columns), r_through_mean, 0.0)
+    #Kontaktwiderstand
+    res_contact_col = 'contact_resistance[mOhm]'
+    df_input.insert(len(df_input.columns), res_contact_col, 0.0)
 
-    r_through_error = 'volume_resistance_error[mOhm*cm2]'
-    df_input.insert(len(df_input.columns), r_through_error, 0.0)
+    res_contact_mean_col = 'contact_resistance_mean[mOhm]'
+    df_input.insert(len(df_input.columns), res_contact_mean_col, 0.0)
 
+    res_contact_error_col = 'contact_resistance_error[mOhm]'
+    df_input.insert(len(df_input.columns), res_contact_error_col, 0.0)
+
+    #vs-Gesamtwiderstand
+    res_main_vs_col = 'vs_main_resistance[mOhm*cm]'
+    df_input.insert(len(df_input.columns), res_main_vs_col, 0.0)
+
+    res_main_vs_mean_col = 'vs_main_resistance_mean[mOhm*cm]'
+    df_input.insert(len(df_input.columns), res_main_vs_mean_col, 0.0)
+
+    res_main_vs_error_col = 'vs_main_resistance_error[mOhm*cm]'
+    df_input.insert(len(df_input.columns), res_main_vs_error_col, 0.0)
+
+    #vs-Durchgangswiderstand
+    res_through_vs_col = 'vs_flow_resistance[mOhm*cm]'
+    df_input.insert(len(df_input.columns), res_through_vs_col, 0.0)
+
+    res_through_vs_mean_col = 'vs_flow_resistance_mean[mOhm*cm]'
+    df_input.insert(len(df_input.columns), res_through_vs_mean_col, 0.0)
+
+    res_through_vs_error_col = 'vs_flow_resistance_error[mOhm*cm]'
+    df_input.insert(len(df_input.columns), res_through_vs_error_col, 0.0)
+
+    #vs-Bulkwiderstand
+    res_bulk_vs_col = 'vs_bulk_resistance[mOhm*cm]'
+    df_input.insert(len(df_input.columns), res_bulk_vs_col, 0.0)
+
+    res_bulk_vs_mean_col = 'vs_bulk_resistance_mean[mOhm*cm]'
+    df_input.insert(len(df_input.columns), res_bulk_vs_mean_col, 0.0)
+
+    res_bulk_vs_error_col = 'vs_bulk_resistance_error[mOhm*cm]'
+    df_input.insert(len(df_input.columns), res_bulk_vs_error_col, 0.0)
+
+    #as-Gesamtwiderstand
+    res_main_as_col = 'as_main_resistance[mOhm*cm2]'
+    df_input.insert(len(df_input.columns), res_main_as_col, 0.0)
+
+    res_main_as_mean_col = 'as_main_resistance_mean[mOhm*cm2]'
+    df_input.insert(len(df_input.columns), res_main_as_mean_col, 0.0)
+
+    res_main_as_error_col = 'as_main_resistance_error[mOhm*cm2]'
+    df_input.insert(len(df_input.columns), res_main_as_error_col, 0.0)
+
+    #as-Durchgangswiderstand
+    res_through_as_col = 'as_through_resistance[mOhm*cm2]'
+    df_input.insert(len(df_input.columns), res_through_as_col, 0.0)
+
+    res_through_as_mean_col = 'as_through_resistance_mean[mOhm*cm2]'
+    df_input.insert(len(df_input.columns), res_through_as_mean_col, 0.0)
+
+    res_through_as_error_col = 'as_through_resistance_error[mOhm*cm2]'
+    df_input.insert(len(df_input.columns), res_through_as_error_col, 0.0)
+
+    #as-Bulkwiderstand
+    res_bulk_as_col = 'as_bulk_resistance[mOhm*cm2]'
+    df_input.insert(len(df_input.columns), res_bulk_as_col, 0.0)
+
+    res_bulk_as_mean_col = 'as_bulk_resistance_mean[mOhm*cm2]'
+    df_input.insert(len(df_input.columns), res_bulk_as_mean_col, 0.0)
+
+    res_bulk_as_error_col = 'as_bulk_resistance_error[mOhm*cm2]'
+    df_input.insert(len(df_input.columns), res_bulk_as_error_col, 0.0)
+
+    #as-Kontaktwiderstand
+    res_contact_as_col = 'as_contact_resistance[mOhm*cm2]'
+    df_input.insert(len(df_input.columns), res_contact_as_col, 0.0)
+
+    res_contact_as_mean_col = 'as_contact_resistance_mean[mOhm*cm2]'
+    df_input.insert(len(df_input.columns), res_contact_as_mean_col, 0.0)
+
+    res_contact_as_error_col = 'as_contact_resistance_error[mOhm*cm2]'
+    df_input.insert(len(df_input.columns), res_contact_as_error_col, 0.0)
+
+    #vs-Gesamtleitwert
+    con_main_vs_col = 'vs_main_conductance[S/cm]'
+    df_input.insert(len(df_input.columns), con_main_vs_col, 0.0)
+
+    con_main_vs_mean_col = 'vs_main_conductance_mean[S/cm]'
+    df_input.insert(len(df_input.columns), con_main_vs_mean_col, 0.0)
+
+    con_main_vs_error_col = 'vs_main_conductance_error[S/cm]'
+    df_input.insert(len(df_input.columns), con_main_vs_error_col, 0.0)
+
+    #vs-Durchgangsleitwert
+    con_through_vs_col = 'vs_flow_conductance[S/cm]'
+    df_input.insert(len(df_input.columns), con_through_vs_col, 0.0)
+
+    con_through_vs_mean_col = 'vs_flow_conductance_mean[S/cm]'
+    df_input.insert(len(df_input.columns), con_through_vs_mean_col, 0.0)
+
+    con_through_vs_error_col = 'vs_flow_conductance_error[S/cm]'
+    df_input.insert(len(df_input.columns), con_through_vs_error_col, 0.0)
+
+    #vs-Bulkleitwert
+    con_bulk_vs_col = 'vs_flow_conductance[mOhm*cm2]'
+    df_input.insert(len(df_input.columns), con_bulk_vs_col, 0.0)
+
+    con_bulk_vs_mean_col = 'vs_flow_conductance_mean[mOhm*cm2]'
+    df_input.insert(len(df_input.columns), con_bulk_vs_mean_col, 0.0)
+
+    con_bulk_vs_error_col = 'vs_flow_conductance_error[mOhm*cm2]'
+    df_input.insert(len(df_input.columns), con_bulk_vs_error_col, 0.0)
+
+    #spez. GDL-Korrektur
     corr = 'degradation_corr[mOhm*cm2]'
     df_input.insert(len(df_input.columns), corr, 0.0)
 
+    #Messzyklus
     cycle = 'cycle'
     df_input.insert(len(df_input.columns), cycle, 0.0)
 
     # seperate measurements by cycles
-
     z = 1
     rec = 0
     for i, v in df_input['pressure_rounded[bar]'].items():
@@ -121,8 +224,11 @@ def store_library(file, sample, gdl1, gdl2, spec, ref):
     pressures = np.unique(pressure_rounded.to_numpy(dtype=int))
     cycles = np.unique(df_input['cycle'].to_numpy(dtype=int))
 
-    #TODO: get correction to work!
+    #Durchschnittliche Probendicke
+    thickness = int(thickness) / 1000
+    df_input['sample_thickness[mm]'] = thickness
 
+    #H23 Widerstands und Zyklenkorrektur
 
     if ref is not 'Referenz' and gdl1 == 'H23':
 
@@ -130,13 +236,6 @@ def store_library(file, sample, gdl1, gdl2, spec, ref):
 
         h23_ref = 'h23_reference.csv'
         df_h23 = pd.read_csv(h23_ref)
-
-
-        #df_h23['pressure_sample[bar]'].round(decimals=0)
-        #ref_pressures = np.unique(df_h23['pressure_rounded[bar]'].to_numpy(dtype=float))
-        #print(df_h23[df_h23['cycle'] >= 59.0 and df_h23['cycle'] <= 60.0])
-        #print(df_h23['cycle'] == 60.0)
-
 
         for c in cycles:
             df_input_1 = df_input[df_input['cycle'] == c]
@@ -146,10 +245,9 @@ def store_library(file, sample, gdl1, gdl2, spec, ref):
             for p in pressures:
                 df_input_2 = df_input_1[df_input_1['pressure_rounded[bar]'] == p]
                 df_h23_2 = df_h23_1[df_h23_1['pressure_rounded[bar]'] == p]
-                correction_value = df_h23_2[r_mean].mean()
+                correction_value = df_h23_2[res_main_col].mean()
                 df_input_2.loc[df_input_2['pressure_rounded[bar]'] == p, corr] = correction_value
                 df_corr_list.append(df_input_2)
-
 
         df_input = pd.concat(df_corr_list)
 
@@ -157,8 +255,10 @@ def store_library(file, sample, gdl1, gdl2, spec, ref):
         df_input.loc[(df_input['pressure_rounded[bar]']) < 31 &
                      (df_input['cycle'] <= 100), corr] = 0
 
+    #TODO: Implementierung SGL 29BC Korrrektur
+
     # create variable for storage in library --> file_identifier
-    file_identifier = ref + ' ' + sample + ' ' + gdl1+gdl2 + spec
+    file_identifier = ref + ' ' + sample + ' ' + gdl1 + gdl2 + spec
 
     # create empty df which will be filled with storage data
     df_list = []
@@ -183,19 +283,51 @@ def store_library(file, sample, gdl1, gdl2, spec, ref):
             df_t2_c = df_t1[df_t1[cycle] == c]
 
             # declare empty y / y-error-value list for plotting --> contact res
-            resistance_mean = []
-            resistance_error = []
 
-            resistance_g_mean = []
-            resistance_g_error = []
+            res_main_mean_list = []             #Gesamtwiderstand
+            res_main_error_list = []
 
-            resistance_bulk_mean = []
-            resistance_bulk_error = []
+            res_through_mean_list = []          #Durchgangswiderstand
+            res_through_error_list = []
 
-            resistance_through_mean = []
-            resistance_through_error = []
+            res_bulk_mean_list = []             #Bulkwiderstand
+            res_bulk_error_list = []
+
+            res_contact_mean_list = []          #Kontaktwiderstand
+            res_contact_error_list = []
+
+            res_main_vs_mean_list = []          #vs-Gesamtwiderstand
+            res_main_vs_error_list = []
+
+            res_through_vs_mean_list = []       #vs-Durchgangswiderstand
+            res_through_vs_error_list = []
+
+            res_bulk_vs_mean_list = []          #vs-Bulkwiderstand
+            res_bulk_vs_error_list = []
+
+            res_main_as_mean_list = []          #as-Gesamtwiderstand
+            res_main_as_error_list = []
+
+            res_through_as_mean_list = []       #as-Durchngangswiderstand
+            res_through_as_error_list = []
+
+            res_bulk_as_mean_list = []          #as-Bulkwiderstand
+            res_bulk_as_error_list = []
+
+            res_contact_as_mean_list = []       #as-Kontaktwiderstand
+            res_contact_as_error_list = []
+
+            con_main_vs_mean_list = []          #vs-Gesamtleitwert
+            con_main_vs_error_list = []
+
+            con_through_vs_mean_list = []       #vs-Durchgangsleitwert
+            con_through_vs_error_list = []
+
+            con_bulk_vs_mean_list = []          #vs-Bulkleitwert
+            con_bulk_vs_error_list = []
 
             # seperate 'cycle'-df into different pressures
+
             for p in pressures:
 
                 # df-slice of 'cycle'-df with single pressure
@@ -203,117 +335,301 @@ def store_library(file, sample, gdl1, gdl2, spec, ref):
                 df_t3 = df_t2_c[df_t2_c['pressure_rounded[bar]'] == p]
 
                 # calculate --> overall resistance
+
+                #Gesamtwiderstand
+
+                res_main = (df_t3['voltage_th[mV]'] / df_t3['current[mA]'])
+
+                #! Korrekturwert s. Korrekturschleife -->[corr]
+
+                #Durchgangswiderstand
+
+                res_through = res_main - df_t3[corr]
+
+                #Bulkwiderstand
+
+                if spec == "m. Nadel":
+                    res_bulk = (df_t3['voltage_needle[mV]'] / df_t3['current[mA]'])
+                else:
+                    res_bulk = (df_t3['voltage_th[mV]'] - df_t3[corr]) / df_t3['current[mA]']
+
+                #Kontaktwiderstand
+
+                res_contact = (res_through - res_bulk) / 2
+
+                #volumenspezifischer Gesamtwiderstand
+
+                res_main_vs = res_main * df_t3['contact_area[cm2]'] / df_t3['sample_thickness[mm]']
+
+                #volumenspezifischer Durchgangswiderstand
+
+                res_through_vs = res_through * df_t3['contact_area[cm2]'] / df_t3['sample_thickness[mm]']
+
+                #volumenspezifischer Bulkwiderstand
+
+                res_bulk_vs = res_bulk * df_t3['contact_area[cm2]'] / df_t3['sample_thickness[mm]']
+
                 # flächenspezifischer Gesamtwiderstand
-                res_g = (df_t3['voltage_th[mV]'] / df_t3['current[mA]']) * 1000.0 * df_t3['contact_area[cm2]']
+
+                res_main_as = res_main *  df_t3['contact_area[cm2]']
+
+                # flächenspezifscher Durchgangswiderstand
+
+                res_through_as = res_through * df_t3['contact_area[cm2]']
 
                 # flächenspezifischer Bulkwiderstand
-                if spec == "m. Nadel":
-                    res_bulk = (df_t3['voltage_needle[mV]'] / df_t3['current[mA]']) * 1000 * df_t3['contact_area[cm2]']
-                else:
-                    res_bulk = df_t3[r_bulk_sub] / 1
 
-                # flächenspezifischer Durchgangswiderstand
-                res_through = ((df_t3['voltage_th[mV]'] / df_t3['current[mA]']) - (df_t3[corr]/1000)) * 1000 * df_t3['contact_area[cm2]']
-
-                # calculate --> contact resistance
+                res_bulk_as = res_bulk * df_t3['contact_area[cm2]']
 
                 # flächenspezifischer Kontaktwiderstand
-                #res_cr = (((df_t3['voltage_th[mV]'] / df_t3['current[mA]']) -(df_t3[corr]/1000)) / 2.0) * 1000 * df_t3['contact_area[cm2]']
 
-                res_cr = (res_g - df_t3[corr] - res_bulk) / 2.0
+                res_contact_as = res_contact * df_t3['contact_area[cm2]']
 
-                #res_cr = ((res_g - df_h23_cycle_pressure['Gesamtwiderstand / mOhm*cm2 - gemittelt']) - res_bulk) / 2.0
+                # volumenspezifischer Gesamtleitwert
+
+                con_main_vs = 1 / res_main_vs
+
+                # volumenspezifischer Durchgangsleitwert
+
+                con_through_vs = 1 / res_through_vs
+
+                #volumenspezifischer Bulk-Leitwert
+
+                con_bulk_vs = 1 / res_bulk_vs
 
                 # get mean- and sem-value of calculated resistance
-                res_cr_mean = res_cr.mean()
-                res_cr_error = res_cr.sem()
 
-                res_g_mean = res_g.mean()
-                res_g_error = res_g.sem()
-
-                res_bulk_mean = res_bulk.mean()
-                res_bulk_error = res_bulk.sem()
+                res_main_mean = res_main.mean()
+                res_main_error = res_main.sem()
 
                 res_through_mean = res_through.mean()
                 res_through_error = res_through.sem()
 
+                res_bulk_mean = res_bulk.mean()
+                res_bulk_error = res_bulk.sem()
+
+                res_contact_mean = res_contact.mean()
+                res_contact_error = res_contact.sem()
+
+                res_main_vs_mean = res_main_vs.mean()
+                res_main_vs_error = res_main_vs.sem()
+
+                res_through_vs_mean = res_through_vs.mean()
+                res_through_vs_error = res_through_vs.sem()
+
+                res_bulk_vs_mean = res_bulk_vs.mean()
+                res_bulk_vs_error = res_bulk_vs.sem()
+
+                res_main_as_mean = res_main_as.mean()
+                res_main_as_error = res_main_as.sem()
+
+                res_through_as_mean = res_through_as.mean()
+                res_through_as_error = res_through_as.sem()
+
+                res_bulk_as_mean = res_bulk_as.mean()
+                res_bulk_as_error = res_bulk_as.sem()
+
+                res_contact_as_mean = res_contact_as.mean()
+                res_contact_as_error = res_contact_as.sem()
+
+                con_main_vs_mean = con_main_vs.mean()
+                con_main_vs_error = con_main_vs.sem()
+
+                con_through_vs_mean = con_main_vs.mean()
+                con_through_vs_error = con_main_vs.sem()
+
+                con_bulk_vs_mean = con_main_vs.mean()
+                con_bulk_vs_error = con_main_vs.sem()
+
                 # write data --> cr-mean and cr-sem in df-slice
-                df_t3.loc[df_t3['pressure_rounded[bar]'] == p, cr_name] = res_cr
-                df_t3.loc[df_t3['pressure_rounded[bar]'] == p, cr_mean] = res_cr_mean
-                df_t3.loc[df_t3['pressure_rounded[bar]'] == p, cr_error_name] = res_cr_error
 
-                df_t3.loc[df_t3['pressure_rounded[bar]'] == p, r_name] = res_g
-                df_t3.loc[df_t3['pressure_rounded[bar]'] == p, r_mean] = res_g_mean
-                df_t3.loc[df_t3['pressure_rounded[bar]'] == p, r_error_name] = res_g_error
+                df_t3.loc[df_t3['pressure_rounded[bar]'] == p, res_main_col] = res_main
+                df_t3.loc[df_t3['pressure_rounded[bar]'] == p, res_main_mean_col] = res_main_mean
+                df_t3.loc[df_t3['pressure_rounded[bar]'] == p, res_main_error_col] = res_main_error
 
-                df_t3.loc[df_t3['pressure_rounded[bar]'] == p, r_bulk_name] = res_bulk
-                df_t3.loc[df_t3['pressure_rounded[bar]'] == p, r_bulk_mean] = res_bulk_mean
-                df_t3.loc[df_t3['pressure_rounded[bar]'] == p, r_bulk_error] = res_bulk_error
+                df_t3.loc[df_t3['pressure_rounded[bar]'] == p, res_through_col] = res_through
+                df_t3.loc[df_t3['pressure_rounded[bar]'] == p, res_through_mean_col] = res_through_mean
+                df_t3.loc[df_t3['pressure_rounded[bar]'] == p, res_through_error_col] = res_through_error
 
-                df_t3.loc[df_t3['pressure_rounded[bar]'] == p, r_through] = res_through
-                df_t3.loc[df_t3['pressure_rounded[bar]'] == p, r_through_mean] = res_through_mean
-                df_t3.loc[df_t3['pressure_rounded[bar]'] == p, r_through_error] = res_through_error
+                df_t3.loc[df_t3['pressure_rounded[bar]'] == p, res_bulk_col] = res_bulk
+                df_t3.loc[df_t3['pressure_rounded[bar]'] == p, res_bulk_mean_col] = res_bulk_mean
+                df_t3.loc[df_t3['pressure_rounded[bar]'] == p, res_bulk_error_col] = res_bulk_error
+
+                df_t3.loc[df_t3['pressure_rounded[bar]'] == p, res_contact_col] = res_contact
+                df_t3.loc[df_t3['pressure_rounded[bar]'] == p, res_contact_mean_col] = res_contact_mean
+                df_t3.loc[df_t3['pressure_rounded[bar]'] == p, res_contact_error_col] = res_contact_error
+
+                df_t3.loc[df_t3['pressure_rounded[bar]'] == p, res_main_vs_col] = res_main_vs
+                df_t3.loc[df_t3['pressure_rounded[bar]'] == p, res_main_vs_mean_col] = res_main_vs_mean
+                df_t3.loc[df_t3['pressure_rounded[bar]'] == p, res_main_vs_error_col] = res_main_vs_error
+
+                df_t3.loc[df_t3['pressure_rounded[bar]'] == p, res_through_vs_col] = res_through_vs
+                df_t3.loc[df_t3['pressure_rounded[bar]'] == p, res_through_vs_mean_col] = res_through_vs_mean
+                df_t3.loc[df_t3['pressure_rounded[bar]'] == p, res_through_vs_error_col] = res_through_vs_error
+
+                df_t3.loc[df_t3['pressure_rounded[bar]'] == p, res_bulk_as_col] = res_bulk_vs
+                df_t3.loc[df_t3['pressure_rounded[bar]'] == p, res_bulk_as_mean_col] = res_bulk_vs_mean
+                df_t3.loc[df_t3['pressure_rounded[bar]'] == p, res_bulk_as_error_col] = res_bulk_vs_error
+
+                df_t3.loc[df_t3['pressure_rounded[bar]'] == p, res_main_as_col] = res_main_as
+                df_t3.loc[df_t3['pressure_rounded[bar]'] == p, res_main_as_mean_col] = res_main_as_mean
+                df_t3.loc[df_t3['pressure_rounded[bar]'] == p, res_main_as_error_col] = res_main_as_error
+
+                df_t3.loc[df_t3['pressure_rounded[bar]'] == p, res_through_as_col] = res_through_as
+                df_t3.loc[df_t3['pressure_rounded[bar]'] == p, res_through_as_mean_col] = res_through_as_mean
+                df_t3.loc[df_t3['pressure_rounded[bar]'] == p, res_through_as_error_col] = res_through_as_error
+
+                df_t3.loc[df_t3['pressure_rounded[bar]'] == p, res_bulk_as_col] = res_bulk_as
+                df_t3.loc[df_t3['pressure_rounded[bar]'] == p, res_bulk_as_mean_col] = res_bulk_as_mean
+                df_t3.loc[df_t3['pressure_rounded[bar]'] == p, res_bulk_as_error_col] = res_bulk_as_error
+
+                df_t3.loc[df_t3['pressure_rounded[bar]'] == p, res_contact_as_col] = res_contact_as
+                df_t3.loc[df_t3['pressure_rounded[bar]'] == p, res_contact_as_mean_col] = res_contact_as_mean
+                df_t3.loc[df_t3['pressure_rounded[bar]'] == p, res_contact_as_error_col] = res_contact_as_error
+
+                df_t3.loc[df_t3['pressure_rounded[bar]'] == p, con_main_vs_col] = con_main_vs
+                df_t3.loc[df_t3['pressure_rounded[bar]'] == p, con_main_vs_mean_col] = con_main_vs_mean
+                df_t3.loc[df_t3['pressure_rounded[bar]'] == p, con_main_vs_error_col] = con_main_vs_error
+
+                df_t3.loc[df_t3['pressure_rounded[bar]'] == p, con_through_vs_col] = con_through_vs
+                df_t3.loc[df_t3['pressure_rounded[bar]'] == p, con_through_vs_mean_col] = con_through_vs_mean
+                df_t3.loc[df_t3['pressure_rounded[bar]'] == p, con_through_vs_error_col] = con_through_vs_error
+
+                df_t3.loc[df_t3['pressure_rounded[bar]'] == p, con_bulk_vs_col] = con_bulk_vs
+                df_t3.loc[df_t3['pressure_rounded[bar]'] == p, res_bulk_vs_mean_col] = con_bulk_vs_mean
+                df_t3.loc[df_t3['pressure_rounded[bar]'] == p, res_bulk_vs_error_col] = con_bulk_vs_error
 
                 # append cr-mean and cr-sem values of single pressure to x,y plotdata
-                resistance_mean.append(res_cr_mean)
-                resistance_error.append(res_cr_error)
 
-                resistance_g_mean.append(res_g_mean)
-                resistance_g_error.append(res_g_error)
+                #Gesamtwiderstand
+                res_main_mean_list.append(res_main_mean)
+                res_main_error_list.append(res_main_error)
 
-                resistance_bulk_mean.append(res_bulk_mean)
-                resistance_bulk_error.append(res_bulk_error)
+                #Durchgangswiderstand
+                res_through_mean_list.append(res_through_mean)
+                res_through_error_list.append(res_through_error)
 
-                resistance_through_mean.append(res_through_mean)
-                resistance_through_error.append(res_through_error)
+                #Bulkwiderstand
+                res_bulk_mean_list.append(res_bulk_mean)
+                res_bulk_error_list.append(res_bulk_error)
 
-                # df_t3.loc[df_t3['pressure_rounded[bar]'] == p, cr_mean] = \
-                #     res_cr_mean
-                #
-                # df_t3.loc[df_t3['pressure_rounded[bar]'] == p, cr_mean] = \
-                #     res_cr_mean
+                #Kontaktwiderstand
+                res_contact_mean_list.append(res_contact_mean)
+                res_contact_error_list.append(res_contact_error)
+
+                #vs-Gesamtwiderstand
+                res_main_vs_mean_list.append(res_contact_as_mean)
+                res_main_vs_error_list.append(res_contact_as_error)
+
+                #vs-Durchgangswiderstand
+                res_through_vs_mean_list.append(res_through_vs_mean)
+                res_through_vs_error_list.append(res_through_vs_error)
+
+                #vs-Bulkwiderstand
+                res_bulk_mean_list.append(res_bulk_vs_mean)
+                res_bulk_error_list.append(res_bulk_vs_error)
+
+                #as-Gesamtwiderstand
+                res_main_as_mean_list.append(res_main_as_mean)
+                res_main_as_error_list.append(res_main_as_error)
+
+                #as-Durchgangswiderstand
+                res_through_as_mean_list.append(res_through_as_mean)
+                res_through_as_error_list.append(res_through_as_error)
+
+                #as-Bulkwiderstand
+                res_bulk_as_mean_list.append(res_bulk_as_mean)
+                res_bulk_as_error_list.append(res_bulk_as_error)
+
+                #as-Kontaktwiderstand
+                res_contact_as_mean_list.append(res_contact_as_mean)
+                res_contact_as_error_list.append(res_contact_as_error)
+
+                #vs-Gesamtleitwert
+                con_main_vs_mean_list.append(con_main_vs_mean)
+                con_main_vs_error_list.append(con_main_vs_error)
+
+                #vs-Durchgangsleitwert
+                con_through_vs_mean_list.append(con_through_vs_mean)
+                con_through_vs_error_list.append(con_through_vs_error)
+
+                #vs-Bulkleitwert
+                con_bulk_vs_mean_list.append(con_bulk_vs_mean)
+                con_bulk_vs_error_list.append(con_bulk_vs_error)
 
                 df_list.append(df_t3)
 
             # forming x,y-value-lists into array
+
             # TODO: implement error-bars in graphs
-            resistance_mean = np.asarray(resistance_mean)
-            resistance_error = np.asarray(resistance_error)
+            res_main_mean = np.asarray(res_main_mean_list)
+            res_main_error = np.asarray(res_main_error_list)
 
-            resistance_g_mean = np.asarray(resistance_g_mean)
-            resistance_g_error = np.asarray(resistance_g_error)
+            res_through_mean = np.asarray(res_through_mean_list)
+            res_through_error = np.asarray(res_through_error_list)
 
-            resistance_bulk_mean = np.asarray(resistance_bulk_mean)
-            resistance_bulk_error = np.asarray(resistance_bulk_error)
+            res_bulk_mean = np.asarray(res_bulk_mean_list)
+            res_bulk_error = np.asarray(res_bulk_error_list)
 
-            resistance_through_mean = np.asarray(resistance_through_mean)
-            resistance_through_error = np.asarray(resistance_through_error)
+            res_contact_mean = np.asarray(res_contact_mean_list)
+            res_contact_error = np.asarray(res_contact_error_list)
+
+            res_main_vs_mean = np.asarray(res_main_vs_mean_list)
+            res_main_vs_error = np.asarray(res_main_vs_error_list)
+
+            res_through_vs_mean = np.asarray(res_through_vs_mean_list)
+            res_through_vs_error = np.asarray(res_through_vs_error_list)
+
+            res_bulk_vs_mean = np.asarray(res_bulk_vs_mean_list)
+            res_bulk_vs_error = np.asarray(res_bulk_vs_error_list)
+
+            res_main_as_mean = np.asarray(res_main_as_mean_list)
+            res_main_as_error = np.asarray(res_main_as_error_list)
+
+            res_through_as_mean = np.asarray(res_through_as_mean_list)
+            res_through_as_error = np.asarray(res_through_as_error_list)
+
+            res_bulk_as_mean = np.asarray(res_bulk_as_mean_list)
+            res_bulk_as_error = np.asarray(res_bulk_as_error_list)
+
+            res_contact_as_mean = np.asarray(res_contact_as_mean_list)
+            res_contact_as_error = np.asarray(res_contact_as_error_list)
+
+            con_main_vs_mean = np.asarray(con_main_vs_mean_list)
+            con_main_vs_error = np.asarray(con_main_vs_error_list)
+
+            con_through_vs_mean = np.asarray(con_through_vs_mean_list)
+            con_through_vs_error = np.asarray(con_through_vs_error_list)
+
+            con_bulk_vs_mean = np.asarray(con_bulk_vs_mean_list)
+            con_bulk_vs_error = np.asarray(con_bulk_vs_error_list)
+
 
             # graph --> res_mean over p (every 'cycle' seperate)
 
             # plt.errorbar(pressures, resistance_mean, yerr=resistance_error, elinewidth=None, capsize=2, label=m + str(c))
 
-            a[0][0].plot(pressures, resistance_g_mean, label = c)
+            a[0][0].plot(pressures, res_main_mean, label=c)
             a[0][0].set_title('Resistance / Pressure')
             a[0][0].set_xlabel('Pressure [bar]')
             a[0][0].set_ylabel('Resistance [mOhm*cm²]')
             a[0][0].set_xlim([0, max(pressures)])
-            #a[0][0].set_ylim([0, max(resistance_g_mean)+1])
+            a[0][0].set_ylim([0, max(res_main_mean)])
             a[0][0].legend(bbox_to_anchor=(-0.55, 1, 0.4, 0), loc='upper left', mode='expand', ncol=3, fontsize='xx-small', title='Cycle')
 
-            a[0][1].plot(pressures, resistance_bulk_mean)
+            a[0][1].plot(pressures, res_through_mean)
             a[0][1].set_title('Volume Resistance / Pressure')
             a[0][1].set_xlabel('Pressure [bar]')
             a[0][1].set_ylabel('Volume Resistance [mOhm*cm²]')
             a[0][1].set_xlim([0, max(pressures)])
-            #a[0][1].set_ylim([0, max(resistance_through_mean)])
+            a[0][1].set_ylim([0, max(res_through_mean)])
 
-            a[0][2].plot(pressures, resistance_mean)
+            a[0][2].plot(pressures, res_contact_mean)
             a[0][2].set_title('Contact Resistance / Pressure')
             a[0][2].set_xlabel('Pressure [bar]')
             a[0][2].set_ylabel('Contact Resistance [mOhm*cm²]')
             a[0][2].set_xlim([0, max(pressures)])
-            #a[0][2].set_ylim([min(resistance_mean)-0.1, max(resistance_mean)+0.1])
+            a[0][2].set_ylim([min(res_contact_mean), max(res_contact_mean)])
 
         for p in pressures:
 
@@ -331,18 +647,13 @@ def store_library(file, sample, gdl1, gdl2, spec, ref):
                 # calculate --> overall resistance
                 cycle_res_g = (df_t3_c['voltage_th[mV]'] / df_t3_c['current[mA]']) * 1000.0 * df_t2_p['contact_area[cm2]']
 
-                # TODO: Hier muss res_g noch mittels korrekturfaktor anhand des GDL-Alters angepasst werden!
-
                 # calculate --> contact resistance
-
 
                 cycle_res_bulk = (df_t3_c['voltage_needle_th[mV]'] / df_t3_c['current[mA]']) * 1000 * df_t3_c['contact_area[cm2]']
 
                 # cycle_res = (((df_t3_c['U_ges-Th_U'] / df_t3_c['I_Ist / mA']) -
                 #               (df_t3_c['U_Nadel-Th_U'] / df_t3_c['I_Ist / mA'])) / 2.0) * 1000 * df_t3_c['Anpressfläche / cm²']
                 cycle_res = (cycle_res_g - cycle_res_bulk) / 2.0
-
-
 
                 # get mean resistance of 'cycle' for specific pressure
                 ref_res = cycle_res.mean()
@@ -364,7 +675,7 @@ def store_library(file, sample, gdl1, gdl2, spec, ref):
             a[1][0].set_title('Resistance / Cycles')
             a[1][0].set_xlabel('Measurement Cycle')
             a[1][0].set_ylabel('Resistance [mOhm*cm²]')
-            a[1][0].set_xlim([0, max(cycles)])
+            a[1][0].set_xlim([1, max(cycles)])
             #a[1][0].set_ylim([0, max(ref_res_g_mean)+10])
             a[1][0].legend(bbox_to_anchor=(-0.55, 1, 0.2, 0), loc='upper left',
                            mode='expand', fontsize='small', title ='p [bar]')
@@ -373,14 +684,14 @@ def store_library(file, sample, gdl1, gdl2, spec, ref):
             a[1][1].set_title('Bulk-Resistance / Cycles')
             a[1][1].set_xlabel('Measurement Cycle')
             a[1][1].set_ylabel('Bulk-Resistance [mOhm*cm²]')
-            a[1][1].set_xlim([0, max(cycles)])
+            a[1][1].set_xlim([1, max(cycles)])
             #a[1][1].set_ylim([0, max(ref_bulk_mean)+10])
 
             a[1][2].plot(cycles, ref_res_mean)
             a[1][2].set_title('Contact Resistance / Cycles')
             a[1][2].set_xlabel('Measurement Cycle')
             a[1][2].set_ylabel('Contact Resistance [mOhm*cm²]')
-            a[1][2].set_xlim([0, max(cycles)])
+            a[1][2].set_xlim([1, max(cycles)])
             #a[1][2].set_ylim([min(ref_res_mean)-0.1, max(ref_res_mean)+0.1])
 
 

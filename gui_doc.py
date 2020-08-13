@@ -38,6 +38,7 @@ def import_data(file):
     var2 = 'ref'
     var3 = 'h23'
     var4 = '29bc'
+    var5 = 'thickness'
 
 
     #label1 = tk.Label(docu, text="Datum")
@@ -46,11 +47,13 @@ def import_data(file):
     label3 = tk.Label(top, pady=10, text="GDL:", bg='lightgrey')
     label4 = tk.Label(top, pady=10, text="Method:", bg='lightgrey')
     label5 = tk.Label(bot, text='Selection: ' + file, bg='grey')
+    label6 = tk.Label(top, pady=10, text="Thickness [mm]:", bg='lightgrey')
 
 
     #entry1 = tk.Entry(docu, width=40, bd=5)        #enables text string (oneliner) input
 
     entry2 = tk.Entry(top, width=30, bd=5)
+    entry3 = tk.Entry(top, width=30, bd=5)
 
     #entry3 = tk.Entry(docu, width=40, bd=5)
 
@@ -62,7 +65,7 @@ def import_data(file):
                                     checkbutton3.getvar(var3),
                                     checkbutton4.getvar(var4),
                                     checkbutton1.getvar(var),
-                                    checkbutton2.getvar(var2)),
+                                    checkbutton2.getvar(var2), entry3.get()),
                                    docu.destroy()])
 
     checkbutton1 = tk.Checkbutton(top, text="Messnadel", variable=var,
@@ -79,7 +82,8 @@ def import_data(file):
 
 
     #label1.grid(row=2, column=0, sticky="w")
-    label2.grid(row=2, column=0, padx=20, sticky="w")
+    label2.grid(row=1, column=0, padx=20, sticky="w")
+    label6.grid(row=2, column=0, padx=20, sticky="w")
     label3.grid(row=3, column=0, padx=20, sticky="w")
     label4.grid(row=4, column=0, padx=20, sticky="w")
     label5.grid(row=0, column=0, columnspan=3, sticky='w')
@@ -87,7 +91,8 @@ def import_data(file):
 
     #entry1.grid(row=2, column=1, sticky="w")
 
-    entry2.grid(row=2, column=1)
+    entry2.grid(row=1, column=1)
+    entry3.grid(row=2, column=1)
 
     #entry3.grid(row=4, column=1, sticky="w")
 
@@ -97,7 +102,5 @@ def import_data(file):
     checkbutton2.grid(row=2, padx= 20, column=2, sticky='w')
     checkbutton3.grid(row=3, padx= 20, column=1, sticky='w')
     checkbutton4.grid(row=3, padx= 20, column=2, sticky='w')
-
-
 
     docu.mainloop() # halts python app for duration of gui
