@@ -54,9 +54,7 @@ def import_data(file):
 
     entry2 = tk.Entry(top, width=30, bd=5)
     entry3 = tk.Entry(top, width=30, bd=5)
-
     #entry3 = tk.Entry(docu, width=40, bd=5)
-
 
     button1 = \
         tk.Button(top, text='OK', width=20, bd=5,

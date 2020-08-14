@@ -12,7 +12,7 @@ def store_library(file, sample, gdl1, gdl2, spec, ref, thickness):
     df_input = pd.read_csv(file, sep='\t', decimal=',', encoding='cp1252',
                            error_bad_lines=False)
     # round dataframa values
-    df_input.round(2)
+    df_input.round(6)
 
     # format dataframe
     # deleting unnecessary columns
@@ -50,7 +50,7 @@ def store_library(file, sample, gdl1, gdl2, spec, ref, thickness):
                     value=pressure_rounded)
 
     #Probendicke
-    sample_thickness = 'sample_thickness[mm]'
+    sample_thickness = 'sample_thickness[cm]'
     df_input.insert(len(df_input.columns), sample_thickness, 0.0)
 
     #Gesamtwiderstand
@@ -187,17 +187,17 @@ def store_library(file, sample, gdl1, gdl2, spec, ref, thickness):
     df_input.insert(len(df_input.columns), con_through_vs_error_col, 0.0)
 
     #vs-Bulkleitwert
-    con_bulk_vs_col = 'vs_flow_conductance[mOhm*cm2]'
+    con_bulk_vs_col = 'vs_bulk_conductance[mOhm*cm2]'
     df_input.insert(len(df_input.columns), con_bulk_vs_col, 0.0)
 
-    con_bulk_vs_mean_col = 'vs_flow_conductance_mean[mOhm*cm2]'
+    con_bulk_vs_mean_col = 'vs_bulk_conductance_mean[mOhm*cm2]'
     df_input.insert(len(df_input.columns), con_bulk_vs_mean_col, 0.0)
 
-    con_bulk_vs_error_col = 'vs_flow_conductance_error[mOhm*cm2]'
+    con_bulk_vs_error_col = 'vs_bulk_conductance_error[mOhm*cm2]'
     df_input.insert(len(df_input.columns), con_bulk_vs_error_col, 0.0)
 
     #spez. GDL-Korrektur
-    corr = 'degradation_corr[mOhm*cm2]'
+    corr = 'degradation_corr[mOhm]'
     df_input.insert(len(df_input.columns), corr, 0.0)
 
     #Messzyklus
@@ -225,8 +225,7 @@ def store_library(file, sample, gdl1, gdl2, spec, ref, thickness):
     cycles = np.unique(df_input['cycle'].to_numpy(dtype=int))
 
     #Durchschnittliche Probendicke
-    thickness = int(thickness) / 1000
-    df_input['sample_thickness[mm]'] = thickness
+    df_input['sample_thickness[cm]'] = int(thickness) / 10
 
     #H23 Widerstands und Zyklenkorrektur
 
@@ -336,64 +335,64 @@ def store_library(file, sample, gdl1, gdl2, spec, ref, thickness):
 
                 # calculate --> overall resistance
 
-                #Gesamtwiderstand
+                #Gesamtwiderstand [mOhm]
 
-                res_main = (df_t3['voltage_th[mV]'] / df_t3['current[mA]'])
+                res_main = (df_t3['voltage_th[mV]'] / df_t3['current[mA]']) * 1000
 
-                #! Korrekturwert s. Korrekturschleife -->[corr]
+                #! Korrekturwert s. Korrekturschleife -->[corr] in [mOhm]
 
-                #Durchgangswiderstand
+                #Durchgangswiderstand [mOhm]
 
                 res_through = res_main - df_t3[corr]
 
-                #Bulkwiderstand
+                #Bulkwiderstand [mOhm]
 
                 if spec == "m. Nadel":
-                    res_bulk = (df_t3['voltage_needle[mV]'] / df_t3['current[mA]'])
+                    res_bulk = (df_t3['voltage_needle[mV]'] / df_t3['current[mA]']) * 1000
                 else:
-                    res_bulk = (df_t3['voltage_th[mV]'] - df_t3[corr]) / df_t3['current[mA]']
+                    res_bulk = res_main - res_main
 
-                #Kontaktwiderstand
+                #Kontaktwiderstand [mOhm]
 
                 res_contact = (res_through - res_bulk) / 2
 
-                #volumenspezifischer Gesamtwiderstand
+                #volumenspezifischer Gesamtwiderstand [mOhm*cm]
 
-                res_main_vs = res_main * df_t3['contact_area[cm2]'] / df_t3['sample_thickness[mm]']
+                res_main_vs = res_main * df_t3['contact_area[cm2]'] / df_t3['sample_thickness[cm]']
 
-                #volumenspezifischer Durchgangswiderstand
+                #volumenspezifischer Durchgangswiderstand [mOhm*cm]
 
-                res_through_vs = res_through * df_t3['contact_area[cm2]'] / df_t3['sample_thickness[mm]']
+                res_through_vs = res_through * df_t3['contact_area[cm2]'] / df_t3['sample_thickness[cm]']
 
-                #volumenspezifischer Bulkwiderstand
+                #volumenspezifischer Bulkwiderstand [mOhm*cm]
 
-                res_bulk_vs = res_bulk * df_t3['contact_area[cm2]'] / df_t3['sample_thickness[mm]']
+                res_bulk_vs = res_bulk * df_t3['contact_area[cm2]'] / df_t3['sample_thickness[cm]']
 
-                # flächenspezifischer Gesamtwiderstand
+                # flächenspezifischer Gesamtwiderstand [mOhm*cm2]
 
-                res_main_as = res_main *  df_t3['contact_area[cm2]']
+                res_main_as = res_main * df_t3['contact_area[cm2]']
 
-                # flächenspezifscher Durchgangswiderstand
+                # flächenspezifscher Durchgangswiderstand [mOhm*cm2]
 
                 res_through_as = res_through * df_t3['contact_area[cm2]']
 
-                # flächenspezifischer Bulkwiderstand
+                # flächenspezifischer Bulkwiderstand [mOhm*cm2]
 
                 res_bulk_as = res_bulk * df_t3['contact_area[cm2]']
 
-                # flächenspezifischer Kontaktwiderstand
+                # flächenspezifischer Kontaktwiderstand [mOhm*cm2]
 
                 res_contact_as = res_contact * df_t3['contact_area[cm2]']
 
-                # volumenspezifischer Gesamtleitwert
+                # volumenspezifischer Gesamtleitwert [S/cm]
 
                 con_main_vs = 1 / res_main_vs
 
-                # volumenspezifischer Durchgangsleitwert
+                # volumenspezifischer Durchgangsleitwert [S/cm]
 
                 con_through_vs = 1 / res_through_vs
 
-                #volumenspezifischer Bulk-Leitwert
+                #volumenspezifischer Bulk-Leitwert [S/cm]
 
                 con_bulk_vs = 1 / res_bulk_vs
 
@@ -609,6 +608,8 @@ def store_library(file, sample, gdl1, gdl2, spec, ref, thickness):
 
             # plt.errorbar(pressures, resistance_mean, yerr=resistance_error, elinewidth=None, capsize=2, label=m + str(c))
 
+
+
             a[0][0].plot(pressures, res_main_mean, label=c)
             a[0][0].set_title('Resistance / Pressure')
             a[0][0].set_xlabel('Pressure [bar]')
@@ -622,21 +623,23 @@ def store_library(file, sample, gdl1, gdl2, spec, ref, thickness):
             a[0][1].set_xlabel('Pressure [bar]')
             a[0][1].set_ylabel('Volume Resistance [mOhm*cm²]')
             a[0][1].set_xlim([0, max(pressures)])
-            a[0][1].set_ylim([0, max(res_through_mean)])
+            a[0][1].set_ylim([0, max(res_main_mean)])
 
             a[0][2].plot(pressures, res_contact_mean)
             a[0][2].set_title('Contact Resistance / Pressure')
             a[0][2].set_xlabel('Pressure [bar]')
             a[0][2].set_ylabel('Contact Resistance [mOhm*cm²]')
             a[0][2].set_xlim([0, max(pressures)])
-            a[0][2].set_ylim([min(res_contact_mean), max(res_contact_mean)])
+            a[0][2].set_ylim([0, max(res_main_mean)])
 
         for p in pressures:
 
             # declare empty y-value list for plotting --> gdl degradation
-            ref_res_mean = []
-            ref_res_g_mean = []
-            ref_bulk_mean = []
+            ref_res_main_as_mean = []
+            ref_res_through_as_mean = []
+            ref_res_bulk_as_mean = []
+            ref_res_contact_as_mean = []
+
 
             df_t2_p = df_t1[df_t1['pressure_rounded[bar]'] == p]
 
@@ -645,60 +648,67 @@ def store_library(file, sample, gdl1, gdl2, spec, ref, thickness):
                 df_t3_c = df_t2_p[df_t2_p[cycle] == c]
 
                 # calculate --> overall resistance
-                cycle_res_g = (df_t3_c['voltage_th[mV]'] / df_t3_c['current[mA]']) * 1000.0 * df_t2_p['contact_area[cm2]']
+                cycle_res_main_as = (df_t3_c['voltage_th[mV]'] / df_t3_c['current[mA]']) * 1000.0 * df_t2_p['contact_area[cm2]']
 
                 # calculate --> contact resistance
 
-                cycle_res_bulk = (df_t3_c['voltage_needle_th[mV]'] / df_t3_c['current[mA]']) * 1000 * df_t3_c['contact_area[cm2]']
+                cycle_res_through_as = ((df_t3_c['voltage_th[mV]'] / df_t3_c['current[mA]']) * 1000.0 - df_t3_c[corr]) * df_t2_p['contact_area[cm2]']
 
-                # cycle_res = (((df_t3_c['U_ges-Th_U'] / df_t3_c['I_Ist / mA']) -
-                #               (df_t3_c['U_Nadel-Th_U'] / df_t3_c['I_Ist / mA'])) / 2.0) * 1000 * df_t3_c['Anpressfläche / cm²']
-                cycle_res = (cycle_res_g - cycle_res_bulk) / 2.0
+                if spec == "m. Nadel":
+                    cycle_res_bulk_as = (df_t3_c['voltage_needle_th[mV]'] / df_t3_c['current[mA]']) * 1000 * df_t3_c['contact_area[cm2]']
+                else:
+                    cycle_res_bulk_as = cycle_res_main_as - cycle_res_main_as
+
+                cycle_res_contact_as = (cycle_res_through_as - cycle_res_bulk_as) / 2.0
 
                 # get mean resistance of 'cycle' for specific pressure
-                ref_res = cycle_res.mean()
-                ref_res_g = cycle_res_g.mean()
-                ref_res_bulk = cycle_res_bulk.mean()
+                ref_res_main_as = cycle_res_main_as.mean()
+                ref_res_bulk_as = cycle_res_bulk_as.mean()
+                ref_res_through_as = cycle_res_through_as.mean()
+                ref_res_contact_as = cycle_res_contact_as.mean()
 
                 # append ref_res of 'cycle' to y-value list
-                ref_res_mean.append(ref_res)
-                ref_res_g_mean.append(ref_res_g)
-                ref_bulk_mean.append(ref_res_bulk)
+                ref_res_main_as_mean.append(ref_res_main_as)
+                ref_res_through_as_mean.append(ref_res_through_as)
+                ref_res_bulk_as_mean.append(ref_res_bulk_as)
+                ref_res_contact_as_mean.append(ref_res_contact_as)
 
-            ref_res_mean = np.asarray(ref_res_mean)
-            ref_res_g_mean = np.asarray(ref_res_g_mean)
-            ref_bulk_mean = np.asarray(ref_bulk_mean)
+            ref_res_main_as_mean = np.asarray(ref_res_main_as_mean)
+            ref_res_through_as_mean = np.asarray(ref_res_through_as_mean)
+            ref_res_bulk_as_mean = np.asarray(ref_res_bulk_as_mean)
+            ref_res_contact_as_mean = np.asarray(ref_res_contact_as_mean)
+
+            if p == 1:
+                ymax = max(ref_res_main_as_mean)
 
             # graph --> res_mean over cylces (one specific pressure)
 
-            a[1][0].plot(cycles, ref_res_g_mean, label=p)
-            a[1][0].set_title('Resistance / Cycles')
+            a[1][0].plot(cycles, ref_res_main_as_mean, label=p)
+            a[1][0].set_title('Main-Resistance / Cycles')
             a[1][0].set_xlabel('Measurement Cycle')
-            a[1][0].set_ylabel('Resistance [mOhm*cm²]')
+            a[1][0].set_ylabel('Main-Resistance [mOhm*cm²]')
             a[1][0].set_xlim([1, max(cycles)])
-            #a[1][0].set_ylim([0, max(ref_res_g_mean)+10])
+            a[1][0].set_ylim([0, ymax])
             a[1][0].legend(bbox_to_anchor=(-0.55, 1, 0.2, 0), loc='upper left',
                            mode='expand', fontsize='small', title ='p [bar]')
 
-            a[1][1].plot(cycles, ref_bulk_mean)
-            a[1][1].set_title('Bulk-Resistance / Cycles')
+            a[1][1].plot(cycles, ref_res_through_as_mean)
+            a[1][1].set_title('Flow-Resistance / Cycles')
             a[1][1].set_xlabel('Measurement Cycle')
-            a[1][1].set_ylabel('Bulk-Resistance [mOhm*cm²]')
+            a[1][1].set_ylabel('Flow Resistance [mOhm*cm²]')
             a[1][1].set_xlim([1, max(cycles)])
-            #a[1][1].set_ylim([0, max(ref_bulk_mean)+10])
+            a[1][1].set_ylim([0, ymax])
 
-            a[1][2].plot(cycles, ref_res_mean)
+            a[1][2].plot(cycles, ref_res_contact_as_mean)
             a[1][2].set_title('Contact Resistance / Cycles')
             a[1][2].set_xlabel('Measurement Cycle')
-            a[1][2].set_ylabel('Contact Resistance [mOhm*cm²]')
+            a[1][2].set_ylabel('Contact-    Resistance [mOhm*cm²]')
             a[1][2].set_xlim([1, max(cycles)])
-            #a[1][2].set_ylim([min(ref_res_mean)-0.1, max(ref_res_mean)+0.1])
-
-
+            a[1][2].set_ylim([0, ymax])
 
     df_result = pd.concat(df_list)
     df_import = df_result.sort_values(by=['time'])
-    df_import2 = df_import.round(2)
+    df_import2 = df_import.round(4)
 
     library_name = 'cr_library.csv'
 

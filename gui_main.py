@@ -32,28 +32,39 @@ def plotter2(dropdown_var, df, canvas, subf1, subf2, subf3, subf4, subf5):
     for p in pressures:
 
         df_data2 = df_data[df_data['pressure_rounded[bar]'] == p]
-        res_plot = df_data2['resistance_mean[mOhm*cm2]']
-        contact_res_plot = df_data2['contact_resistance_mean[mOhm*cm2]']
-        volume_res_plot = df_data2['volume_resistance_mean[mOhm*cm2]']
-        bulk_vs_plot = df_data2['volume-specific_bulk_value[S/cm]']
-        bulk_res_plot = df_data2['bulk_resistance_mean[mOhm*cm2]']
 
-        res_mean_plot = res_plot.mean()
-        contact_res_mean_plot = contact_res_plot.mean()
-        volume_res_mean_plot = volume_res_plot.mean()
-        bulk_res_mean_plot = bulk_res_plot.mean()
+        res_main_as_plot = df_data2['as_main_resistance_mean[mOhm]']
+        res_through_as_plot = df_data2['as_flow_resistance_mean[mOhm*cm2]']
+        res_bulk_as_plot = df_data2['as_bulk_resistance_mean[mOhm*cm2]']
+        res_contact_as_plot = df_data2['as_contact_resistance_mean[mOhm*cm2]']
+
+        res_main_vs_plot = df_data2['vs_main_resistance_mean[S/cm]']
+        res_through_vs_plot = df_data2['vs_through_resistance_mean[S/cm]']
+        res_bulk_vs_plot = df_data2['vs_bulk_resistance_mean[S/cm]']
+
+        con_main_vs_plot = df_data2['vs_main_conductance_mean[mOhm*cm2]']
+        con_through_vs_plot = df_data2['vs_through_conductance_mean[mOhm*cm2]']
+        con_bulk_vs_plot = df_data2['vs_bulk_conductance_mean[mOhm*cm2]']
+
+
+        res_main_as_mean_plot = res_main_as_plot.mean()
+        res_through_as_mean_plot = res_through_as_plot.mean()
+        res_bulk_as_mean_plot = res_bulk_as_plot.mean()
+        res_contact_as_mean_plot = res_contact_as_plot.mean()
+
+        #TODO: alle Daten in AnALAYSEDARSTELLUNG IMPORTIEREN
         bulk_vs_mean_plot = bulk_vs_plot.mean()
 
         if p == 20:
-            cr_at_20bar = contact_res_mean_plot
-            vr_at_20bar = volume_res_mean_plot
-            br_at_20bar = bulk_res_mean_plot
+            cr_at_20bar = res_contact_as_mean_plot
+            vr_at_20bar = res_through_as_mean_plot
+            br_at_20bar = res_bulk_as_mean_plot
             bvs_at_20bar = bulk_vs_mean_plot
 
         df_res_mean.append(res_mean_plot)
-        df_contact_res_mean.append(contact_res_mean_plot)
-        df_volume_res_mean.append(volume_res_mean_plot)
-        df_bulk_res_mean.append(bulk_res_mean_plot)
+        df_contact_res_mean.append(res_contact_as_mean_plot)
+        df_volume_res_mean.append(res_through_as_mean_plot)
+        df_bulk_res_mean.append(res_bulk_as_mean_plot)
 
 
     #df_res_mean = df_data['resistance_mean[mOhm*cm2]']
