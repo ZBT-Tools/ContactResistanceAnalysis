@@ -6,7 +6,7 @@ import tkinter as tk
 from tkinter import messagebox
 
 
-def store_library(file, sample, gdl1, gdl2, spec, ref, thickness):
+def store_library(file, sample, gdl1, gdl2, spec, ref, thickness, gdl_age, comment):
 
     # read datafile
     df_input = pd.read_csv(file, sep='\t', decimal=',', encoding='cp1252',
@@ -21,7 +21,7 @@ def store_library(file, sample, gdl1, gdl2, spec, ref, thickness):
 
     # rename columns of remaining dataframe
     df_input.rename(columns={df_input.iloc[0,0]:'date', 'Uhrzeit':'time',
-                                'Kommentar':'commentary',
+                                'Kommentar':'measurement',
                                 'p_Probe_Ist / bar':'pressure_sample[bar]',
                                 'I_Ist / mA': 'current[mA]',
                                 'U_ges / mV':'voltage[mV]',
@@ -38,20 +38,26 @@ def store_library(file, sample, gdl1, gdl2, spec, ref, thickness):
     # fill empty/NaN celss with numerics (0)
     df_input.fillna(0, inplace=True)
 
-    # define commentary / measurement
-    commentary_name = 'commentary'
-    measurement_name = 'measurement'
-
     # round pressures and append to df in seperate column
     pressure_rounded = df_input['pressure_sample[bar]'].round(decimals=0)
+    # current_rounded = df_input['current[mA]'].round(decimals=-2)
 
     # define additional columns for calculations result
     df_input.insert(len(df_input.columns), column='pressure_rounded[bar]',
                     value=pressure_rounded)
+    # df_input.insert(len(df_input.columns), column='current_rounded[mA]',
+    #                 value=current_rounded)
 
     #Probendicke
     sample_thickness = 'sample_thickness[cm]'
     df_input.insert(len(df_input.columns), sample_thickness, 0.0)
+
+    parameters = 'parameters'
+    df_input.insert(len(df_input.columns), parameters , 0.0)
+
+    #mv in V
+    mV_in_V = '[mV]_in_[V]'
+    df_input.insert(len(df_input.columns), mV_in_V, 0.0)
 
     #Gesamtwiderstand
     res_main_col = 'main_resistance[mOhm]'
@@ -137,13 +143,13 @@ def store_library(file, sample, gdl1, gdl2, spec, ref, thickness):
     df_input.insert(len(df_input.columns), res_main_as_error_col, 0.0)
 
     #as-Durchgangswiderstand
-    res_through_as_col = 'as_through_resistance[mOhm*cm2]'
+    res_through_as_col = 'as_flow_resistance[mOhm*cm2]'
     df_input.insert(len(df_input.columns), res_through_as_col, 0.0)
 
-    res_through_as_mean_col = 'as_through_resistance_mean[mOhm*cm2]'
+    res_through_as_mean_col = 'as_flow_resistance_mean[mOhm*cm2]'
     df_input.insert(len(df_input.columns), res_through_as_mean_col, 0.0)
 
-    res_through_as_error_col = 'as_through_resistance_error[mOhm*cm2]'
+    res_through_as_error_col = 'as_flow_resistance_error[mOhm*cm2]'
     df_input.insert(len(df_input.columns), res_through_as_error_col, 0.0)
 
     #as-Bulkwiderstand
@@ -187,13 +193,13 @@ def store_library(file, sample, gdl1, gdl2, spec, ref, thickness):
     df_input.insert(len(df_input.columns), con_through_vs_error_col, 0.0)
 
     #vs-Bulkleitwert
-    con_bulk_vs_col = 'vs_bulk_conductance[mOhm*cm2]'
+    con_bulk_vs_col = 'vs_bulk_conductance[S/cm]'
     df_input.insert(len(df_input.columns), con_bulk_vs_col, 0.0)
 
-    con_bulk_vs_mean_col = 'vs_bulk_conductance_mean[mOhm*cm2]'
+    con_bulk_vs_mean_col = 'vs_bulk_conductance_mean[S/cm]'
     df_input.insert(len(df_input.columns), con_bulk_vs_mean_col, 0.0)
 
-    con_bulk_vs_error_col = 'vs_bulk_conductance_error[mOhm*cm2]'
+    con_bulk_vs_error_col = 'vs_bulk_conductance_error[S/cm]'
     df_input.insert(len(df_input.columns), con_bulk_vs_error_col, 0.0)
 
     #spez. GDL-Korrektur
@@ -205,7 +211,7 @@ def store_library(file, sample, gdl1, gdl2, spec, ref, thickness):
     df_input.insert(len(df_input.columns), cycle, 0.0)
 
     # seperate measurements by cycles
-    z = 1
+    z = int(gdl_age)
     rec = 0
     for i, v in df_input['pressure_rounded[bar]'].items():
         if v >= rec:
@@ -220,12 +226,15 @@ def store_library(file, sample, gdl1, gdl2, spec, ref, thickness):
             df_input[cycle].iloc[i] = z
 
     #get unique values as lists --> measurements / pressures / cycles
-    measurements = np.unique(df_input[commentary_name].to_numpy())
+    measurements = np.unique(df_input['measurement'].to_numpy())
     pressures = np.unique(pressure_rounded.to_numpy(dtype=int))
     cycles = np.unique(df_input['cycle'].to_numpy(dtype=int))
+    #currents = np.unique(df_input[current_rounded])
 
     #Durchschnittliche Probendicke
     df_input['sample_thickness[cm]'] = int(thickness) / 10
+    df_input['[mV] in [V]'] = 1000
+    df_input[parameters] = gdl1 + gdl2 + '' + spec
 
     #H23 Widerstands und Zyklenkorrektur
 
@@ -257,7 +266,8 @@ def store_library(file, sample, gdl1, gdl2, spec, ref, thickness):
     #TODO: Implementierung SGL 29BC Korrrektur
 
     # create variable for storage in library --> file_identifier
-    file_identifier = ref + ' ' + sample + ' ' + gdl1 + gdl2 + spec
+    #file_identifier = ref + ' ' + sample + ' ' + gdl1 + gdl2 + spec
+    file_identifier = sample
 
     # create empty df which will be filled with storage data
     df_list = []
@@ -267,13 +277,13 @@ def store_library(file, sample, gdl1, gdl2, spec, ref, thickness):
     for m in measurements:
 
         # df-slice with single measurement
-        df_t1 = df_input[df_input[commentary_name] == m]
+        df_t1 = df_input[df_input['measurement'] == m]
 
         # specify file-identifer and add measurement
-        measurement_identifier = file_identifier + ' ' + m
+        measurement_identifier = ref + ' ' + file_identifier + ' '+ comment
 
         # add measurement_identifer / cr / cr_error / cr_mean to df
-        df_t1.insert(2, measurement_name, measurement_identifier, True)
+        df_t1.insert(2, 'measurement', measurement_identifier, True)
 
         # seperate measurement-df into different cycles
         for c in cycles:
@@ -331,24 +341,26 @@ def store_library(file, sample, gdl1, gdl2, spec, ref, thickness):
 
                 # df-slice of 'cycle'-df with single pressure
 
-                df_t3 = df_t2_c[df_t2_c['pressure_rounded[bar]'] == p]
+                df_t3_p = df_t2_c[df_t2_c['pressure_rounded[bar]'] == p]
+
+                #df_t4_i = df_t3_p[df_t3_p[current_rounded] == i]
 
                 # calculate --> overall resistance
 
                 #Gesamtwiderstand [mOhm]
 
-                res_main = (df_t3['voltage_th[mV]'] / df_t3['current[mA]']) * 1000
+                res_main = (df_t3_p['voltage_th[mV]'] / df_t3_p['current[mA]']) * 1000
 
                 #! Korrekturwert s. Korrekturschleife -->[corr] in [mOhm]
 
                 #Durchgangswiderstand [mOhm]
 
-                res_through = res_main - df_t3[corr]
+                res_through = res_main - df_t3_p[corr]
 
                 #Bulkwiderstand [mOhm]
 
                 if spec == "m. Nadel":
-                    res_bulk = (df_t3['voltage_needle[mV]'] / df_t3['current[mA]']) * 1000
+                    res_bulk = (df_t3_p['voltage_needle_th[mV]'] / df_t3_p['current[mA]']) * 1000
                 else:
                     res_bulk = res_main - res_main
 
@@ -358,43 +370,43 @@ def store_library(file, sample, gdl1, gdl2, spec, ref, thickness):
 
                 #volumenspezifischer Gesamtwiderstand [mOhm*cm]
 
-                res_main_vs = res_main * df_t3['contact_area[cm2]'] / df_t3['sample_thickness[cm]']
+                res_main_vs = res_main * df_t3_p['contact_area[cm2]'] / df_t3_p['sample_thickness[cm]']
 
                 #volumenspezifischer Durchgangswiderstand [mOhm*cm]
 
-                res_through_vs = res_through * df_t3['contact_area[cm2]'] / df_t3['sample_thickness[cm]']
+                res_through_vs = res_through * df_t3_p['contact_area[cm2]'] / df_t3_p['sample_thickness[cm]']
 
                 #volumenspezifischer Bulkwiderstand [mOhm*cm]
 
-                res_bulk_vs = res_bulk * df_t3['contact_area[cm2]'] / df_t3['sample_thickness[cm]']
+                res_bulk_vs = res_bulk * df_t3_p['contact_area[cm2]'] / df_t3_p['sample_thickness[cm]']
 
                 # flächenspezifischer Gesamtwiderstand [mOhm*cm2]
 
-                res_main_as = res_main * df_t3['contact_area[cm2]']
+                res_main_as = res_main * df_t3_p['contact_area[cm2]']
 
                 # flächenspezifscher Durchgangswiderstand [mOhm*cm2]
 
-                res_through_as = res_through * df_t3['contact_area[cm2]']
+                res_through_as = res_through * df_t3_p['contact_area[cm2]']
 
                 # flächenspezifischer Bulkwiderstand [mOhm*cm2]
 
-                res_bulk_as = res_bulk * df_t3['contact_area[cm2]']
+                res_bulk_as = res_bulk * df_t3_p['contact_area[cm2]']
 
                 # flächenspezifischer Kontaktwiderstand [mOhm*cm2]
 
-                res_contact_as = res_contact * df_t3['contact_area[cm2]']
+                res_contact_as = res_contact * df_t3_p['contact_area[cm2]']
 
                 # volumenspezifischer Gesamtleitwert [S/cm]
 
-                con_main_vs = 1 / res_main_vs
+                con_main_vs = df_input['[mV] in [V]'] / res_main_vs
 
                 # volumenspezifischer Durchgangsleitwert [S/cm]
 
-                con_through_vs = 1 / res_through_vs
+                con_through_vs = df_input['[mV] in [V]'] / res_through_vs
 
                 #volumenspezifischer Bulk-Leitwert [S/cm]
 
-                con_bulk_vs = 1 / res_bulk_vs
+                con_bulk_vs = df_input['[mV] in [V]'] / res_bulk_vs
 
                 # get mean- and sem-value of calculated resistance
 
@@ -434,69 +446,69 @@ def store_library(file, sample, gdl1, gdl2, spec, ref, thickness):
                 con_main_vs_mean = con_main_vs.mean()
                 con_main_vs_error = con_main_vs.sem()
 
-                con_through_vs_mean = con_main_vs.mean()
-                con_through_vs_error = con_main_vs.sem()
+                con_through_vs_mean = con_through_vs.mean()
+                con_through_vs_error = con_through_vs.sem()
 
-                con_bulk_vs_mean = con_main_vs.mean()
-                con_bulk_vs_error = con_main_vs.sem()
+                con_bulk_vs_mean = con_bulk_vs.mean()
+                con_bulk_vs_error = con_bulk_vs.sem()
 
                 # write data --> cr-mean and cr-sem in df-slice
 
-                df_t3.loc[df_t3['pressure_rounded[bar]'] == p, res_main_col] = res_main
-                df_t3.loc[df_t3['pressure_rounded[bar]'] == p, res_main_mean_col] = res_main_mean
-                df_t3.loc[df_t3['pressure_rounded[bar]'] == p, res_main_error_col] = res_main_error
+                df_t3_p.loc[df_t3_p['pressure_rounded[bar]'] == p, res_main_col] = res_main
+                df_t3_p.loc[df_t3_p['pressure_rounded[bar]'] == p, res_main_mean_col] = res_main_mean
+                df_t3_p.loc[df_t3_p['pressure_rounded[bar]'] == p, res_main_error_col] = res_main_error
 
-                df_t3.loc[df_t3['pressure_rounded[bar]'] == p, res_through_col] = res_through
-                df_t3.loc[df_t3['pressure_rounded[bar]'] == p, res_through_mean_col] = res_through_mean
-                df_t3.loc[df_t3['pressure_rounded[bar]'] == p, res_through_error_col] = res_through_error
+                df_t3_p.loc[df_t3_p['pressure_rounded[bar]'] == p, res_through_col] = res_through
+                df_t3_p.loc[df_t3_p['pressure_rounded[bar]'] == p, res_through_mean_col] = res_through_mean
+                df_t3_p.loc[df_t3_p['pressure_rounded[bar]'] == p, res_through_error_col] = res_through_error
 
-                df_t3.loc[df_t3['pressure_rounded[bar]'] == p, res_bulk_col] = res_bulk
-                df_t3.loc[df_t3['pressure_rounded[bar]'] == p, res_bulk_mean_col] = res_bulk_mean
-                df_t3.loc[df_t3['pressure_rounded[bar]'] == p, res_bulk_error_col] = res_bulk_error
+                df_t3_p.loc[df_t3_p['pressure_rounded[bar]'] == p, res_bulk_col] = res_bulk
+                df_t3_p.loc[df_t3_p['pressure_rounded[bar]'] == p, res_bulk_mean_col] = res_bulk_mean
+                df_t3_p.loc[df_t3_p['pressure_rounded[bar]'] == p, res_bulk_error_col] = res_bulk_error
 
-                df_t3.loc[df_t3['pressure_rounded[bar]'] == p, res_contact_col] = res_contact
-                df_t3.loc[df_t3['pressure_rounded[bar]'] == p, res_contact_mean_col] = res_contact_mean
-                df_t3.loc[df_t3['pressure_rounded[bar]'] == p, res_contact_error_col] = res_contact_error
+                df_t3_p.loc[df_t3_p['pressure_rounded[bar]'] == p, res_contact_col] = res_contact
+                df_t3_p.loc[df_t3_p['pressure_rounded[bar]'] == p, res_contact_mean_col] = res_contact_mean
+                df_t3_p.loc[df_t3_p['pressure_rounded[bar]'] == p, res_contact_error_col] = res_contact_error
 
-                df_t3.loc[df_t3['pressure_rounded[bar]'] == p, res_main_vs_col] = res_main_vs
-                df_t3.loc[df_t3['pressure_rounded[bar]'] == p, res_main_vs_mean_col] = res_main_vs_mean
-                df_t3.loc[df_t3['pressure_rounded[bar]'] == p, res_main_vs_error_col] = res_main_vs_error
+                df_t3_p.loc[df_t3_p['pressure_rounded[bar]'] == p, res_main_vs_col] = res_main_vs
+                df_t3_p.loc[df_t3_p['pressure_rounded[bar]'] == p, res_main_vs_mean_col] = res_main_vs_mean
+                df_t3_p.loc[df_t3_p['pressure_rounded[bar]'] == p, res_main_vs_error_col] = res_main_vs_error
 
-                df_t3.loc[df_t3['pressure_rounded[bar]'] == p, res_through_vs_col] = res_through_vs
-                df_t3.loc[df_t3['pressure_rounded[bar]'] == p, res_through_vs_mean_col] = res_through_vs_mean
-                df_t3.loc[df_t3['pressure_rounded[bar]'] == p, res_through_vs_error_col] = res_through_vs_error
+                df_t3_p.loc[df_t3_p['pressure_rounded[bar]'] == p, res_through_vs_col] = res_through_vs
+                df_t3_p.loc[df_t3_p['pressure_rounded[bar]'] == p, res_through_vs_mean_col] = res_through_vs_mean
+                df_t3_p.loc[df_t3_p['pressure_rounded[bar]'] == p, res_through_vs_error_col] = res_through_vs_error
 
-                df_t3.loc[df_t3['pressure_rounded[bar]'] == p, res_bulk_as_col] = res_bulk_vs
-                df_t3.loc[df_t3['pressure_rounded[bar]'] == p, res_bulk_as_mean_col] = res_bulk_vs_mean
-                df_t3.loc[df_t3['pressure_rounded[bar]'] == p, res_bulk_as_error_col] = res_bulk_vs_error
+                df_t3_p.loc[df_t3_p['pressure_rounded[bar]'] == p, res_bulk_as_col] = res_bulk_vs
+                df_t3_p.loc[df_t3_p['pressure_rounded[bar]'] == p, res_bulk_as_mean_col] = res_bulk_vs_mean
+                df_t3_p.loc[df_t3_p['pressure_rounded[bar]'] == p, res_bulk_as_error_col] = res_bulk_vs_error
 
-                df_t3.loc[df_t3['pressure_rounded[bar]'] == p, res_main_as_col] = res_main_as
-                df_t3.loc[df_t3['pressure_rounded[bar]'] == p, res_main_as_mean_col] = res_main_as_mean
-                df_t3.loc[df_t3['pressure_rounded[bar]'] == p, res_main_as_error_col] = res_main_as_error
+                df_t3_p.loc[df_t3_p['pressure_rounded[bar]'] == p, res_main_as_col] = res_main_as
+                df_t3_p.loc[df_t3_p['pressure_rounded[bar]'] == p, res_main_as_mean_col] = res_main_as_mean
+                df_t3_p.loc[df_t3_p['pressure_rounded[bar]'] == p, res_main_as_error_col] = res_main_as_error
 
-                df_t3.loc[df_t3['pressure_rounded[bar]'] == p, res_through_as_col] = res_through_as
-                df_t3.loc[df_t3['pressure_rounded[bar]'] == p, res_through_as_mean_col] = res_through_as_mean
-                df_t3.loc[df_t3['pressure_rounded[bar]'] == p, res_through_as_error_col] = res_through_as_error
+                df_t3_p.loc[df_t3_p['pressure_rounded[bar]'] == p, res_through_as_col] = res_through_as
+                df_t3_p.loc[df_t3_p['pressure_rounded[bar]'] == p, res_through_as_mean_col] = res_through_as_mean
+                df_t3_p.loc[df_t3_p['pressure_rounded[bar]'] == p, res_through_as_error_col] = res_through_as_error
 
-                df_t3.loc[df_t3['pressure_rounded[bar]'] == p, res_bulk_as_col] = res_bulk_as
-                df_t3.loc[df_t3['pressure_rounded[bar]'] == p, res_bulk_as_mean_col] = res_bulk_as_mean
-                df_t3.loc[df_t3['pressure_rounded[bar]'] == p, res_bulk_as_error_col] = res_bulk_as_error
+                df_t3_p.loc[df_t3_p['pressure_rounded[bar]'] == p, res_bulk_as_col] = res_bulk_as
+                df_t3_p.loc[df_t3_p['pressure_rounded[bar]'] == p, res_bulk_as_mean_col] = res_bulk_as_mean
+                df_t3_p.loc[df_t3_p['pressure_rounded[bar]'] == p, res_bulk_as_error_col] = res_bulk_as_error
 
-                df_t3.loc[df_t3['pressure_rounded[bar]'] == p, res_contact_as_col] = res_contact_as
-                df_t3.loc[df_t3['pressure_rounded[bar]'] == p, res_contact_as_mean_col] = res_contact_as_mean
-                df_t3.loc[df_t3['pressure_rounded[bar]'] == p, res_contact_as_error_col] = res_contact_as_error
+                df_t3_p.loc[df_t3_p['pressure_rounded[bar]'] == p, res_contact_as_col] = res_contact_as
+                df_t3_p.loc[df_t3_p['pressure_rounded[bar]'] == p, res_contact_as_mean_col] = res_contact_as_mean
+                df_t3_p.loc[df_t3_p['pressure_rounded[bar]'] == p, res_contact_as_error_col] = res_contact_as_error
 
-                df_t3.loc[df_t3['pressure_rounded[bar]'] == p, con_main_vs_col] = con_main_vs
-                df_t3.loc[df_t3['pressure_rounded[bar]'] == p, con_main_vs_mean_col] = con_main_vs_mean
-                df_t3.loc[df_t3['pressure_rounded[bar]'] == p, con_main_vs_error_col] = con_main_vs_error
+                df_t3_p.loc[df_t3_p['pressure_rounded[bar]'] == p, con_main_vs_col] = con_main_vs
+                df_t3_p.loc[df_t3_p['pressure_rounded[bar]'] == p, con_main_vs_mean_col] = con_main_vs_mean
+                df_t3_p.loc[df_t3_p['pressure_rounded[bar]'] == p, con_main_vs_error_col] = con_main_vs_error
 
-                df_t3.loc[df_t3['pressure_rounded[bar]'] == p, con_through_vs_col] = con_through_vs
-                df_t3.loc[df_t3['pressure_rounded[bar]'] == p, con_through_vs_mean_col] = con_through_vs_mean
-                df_t3.loc[df_t3['pressure_rounded[bar]'] == p, con_through_vs_error_col] = con_through_vs_error
+                df_t3_p.loc[df_t3_p['pressure_rounded[bar]'] == p, con_through_vs_col] = con_through_vs
+                df_t3_p.loc[df_t3_p['pressure_rounded[bar]'] == p, con_through_vs_mean_col] = con_through_vs_mean
+                df_t3_p.loc[df_t3_p['pressure_rounded[bar]'] == p, con_through_vs_error_col] = con_through_vs_error
 
-                df_t3.loc[df_t3['pressure_rounded[bar]'] == p, con_bulk_vs_col] = con_bulk_vs
-                df_t3.loc[df_t3['pressure_rounded[bar]'] == p, res_bulk_vs_mean_col] = con_bulk_vs_mean
-                df_t3.loc[df_t3['pressure_rounded[bar]'] == p, res_bulk_vs_error_col] = con_bulk_vs_error
+                df_t3_p.loc[df_t3_p['pressure_rounded[bar]'] == p, con_bulk_vs_col] = con_bulk_vs
+                df_t3_p.loc[df_t3_p['pressure_rounded[bar]'] == p, con_bulk_vs_mean_col] = con_bulk_vs_mean
+                df_t3_p.loc[df_t3_p['pressure_rounded[bar]'] == p, con_bulk_vs_error_col] = con_bulk_vs_error
 
                 # append cr-mean and cr-sem values of single pressure to x,y plotdata
 
@@ -556,7 +568,7 @@ def store_library(file, sample, gdl1, gdl2, spec, ref, thickness):
                 con_bulk_vs_mean_list.append(con_bulk_vs_mean)
                 con_bulk_vs_error_list.append(con_bulk_vs_error)
 
-                df_list.append(df_t3)
+                df_list.append(df_t3_p)
 
             # forming x,y-value-lists into array
 
@@ -607,8 +619,6 @@ def store_library(file, sample, gdl1, gdl2, spec, ref, thickness):
             # graph --> res_mean over p (every 'cycle' seperate)
 
             # plt.errorbar(pressures, resistance_mean, yerr=resistance_error, elinewidth=None, capsize=2, label=m + str(c))
-
-
 
             a[0][0].plot(pressures, res_main_mean, label=c)
             a[0][0].set_title('Resistance / Pressure')
@@ -680,6 +690,8 @@ def store_library(file, sample, gdl1, gdl2, spec, ref, thickness):
 
             if p == 1:
                 ymax = max(ref_res_main_as_mean)
+            elif p == 2:
+                ymax = max(ref_res_main_as_mean)
 
             # graph --> res_mean over cylces (one specific pressure)
 
@@ -687,7 +699,7 @@ def store_library(file, sample, gdl1, gdl2, spec, ref, thickness):
             a[1][0].set_title('Main-Resistance / Cycles')
             a[1][0].set_xlabel('Measurement Cycle')
             a[1][0].set_ylabel('Main-Resistance [mOhm*cm²]')
-            a[1][0].set_xlim([1, max(cycles)])
+            a[1][0].set_xlim([min(cycles), max(cycles)])
             a[1][0].set_ylim([0, ymax])
             a[1][0].legend(bbox_to_anchor=(-0.55, 1, 0.2, 0), loc='upper left',
                            mode='expand', fontsize='small', title ='p [bar]')
@@ -696,19 +708,19 @@ def store_library(file, sample, gdl1, gdl2, spec, ref, thickness):
             a[1][1].set_title('Flow-Resistance / Cycles')
             a[1][1].set_xlabel('Measurement Cycle')
             a[1][1].set_ylabel('Flow Resistance [mOhm*cm²]')
-            a[1][1].set_xlim([1, max(cycles)])
+            a[1][1].set_xlim([min(cycles), max(cycles)])
             a[1][1].set_ylim([0, ymax])
 
             a[1][2].plot(cycles, ref_res_contact_as_mean)
             a[1][2].set_title('Contact Resistance / Cycles')
             a[1][2].set_xlabel('Measurement Cycle')
             a[1][2].set_ylabel('Contact-    Resistance [mOhm*cm²]')
-            a[1][2].set_xlim([1, max(cycles)])
+            a[1][2].set_xlim([min(cycles), max(cycles)])
             a[1][2].set_ylim([0, ymax])
 
     df_result = pd.concat(df_list)
     df_import = df_result.sort_values(by=['time'])
-    df_import2 = df_import.round(4)
+    df_import2 = df_import.round(8)
 
     library_name = 'cr_library.csv'
 

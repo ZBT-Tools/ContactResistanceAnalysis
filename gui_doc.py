@@ -38,7 +38,9 @@ def import_data(file):
     var2 = 'ref'
     var3 = 'h23'
     var4 = '29bc'
-    var5 = 'thickness'
+
+    filesplit = file.split(' ')[0]
+    name = filesplit.split('/')[-1]
 
 
     #label1 = tk.Label(docu, text="Datum")
@@ -48,13 +50,19 @@ def import_data(file):
     label4 = tk.Label(top, pady=10, text="Method:", bg='lightgrey')
     label5 = tk.Label(bot, text='Selection: ' + file, bg='grey')
     label6 = tk.Label(top, pady=10, text="Thickness [mm]:", bg='lightgrey')
-
+    label7 = tk.Label(top, pady=10, text="GDL-Alter:", bg='lightgrey')
+    label8 = tk.Label(top, pady=10, text="Kommentar:", bg='lightgrey')
 
     #entry1 = tk.Entry(docu, width=40, bd=5)        #enables text string (oneliner) input
 
     entry2 = tk.Entry(top, width=30, bd=5)
+    entry2.insert(0, name)
     entry3 = tk.Entry(top, width=30, bd=5)
-    #entry3 = tk.Entry(docu, width=40, bd=5)
+    entry3.insert(0, '1')
+    entry4 = tk.Entry(top, width=30, bd=5)
+    entry4.insert(0, '15')
+    entry5 = tk.Entry(top, width=30, bd=5)
+    entry5.insert(0, 'U=100V / t=30s / Ra=0.219')
 
     button1 = \
         tk.Button(top, text='OK', width=20, bd=5,
@@ -63,7 +71,8 @@ def import_data(file):
                                     checkbutton3.getvar(var3),
                                     checkbutton4.getvar(var4),
                                     checkbutton1.getvar(var),
-                                    checkbutton2.getvar(var2), entry3.get()),
+                                    checkbutton2.getvar(var2), entry3.get(), entry4.get(),
+                                                 entry5.get()),
                                    docu.destroy()])
 
     checkbutton1 = tk.Checkbutton(top, text="Messnadel", variable=var,
@@ -82,23 +91,27 @@ def import_data(file):
     #label1.grid(row=2, column=0, sticky="w")
     label2.grid(row=1, column=0, padx=20, sticky="w")
     label6.grid(row=2, column=0, padx=20, sticky="w")
-    label3.grid(row=3, column=0, padx=20, sticky="w")
-    label4.grid(row=4, column=0, padx=20, sticky="w")
+    label7.grid(row=3, column=0, padx=20, sticky="w")
+    label3.grid(row=5, column=0, padx=20, sticky="w")
+    label4.grid(row=6, column=0, padx=20, sticky="w")
     label5.grid(row=0, column=0, columnspan=3, sticky='w')
     label5.config(font=("Courier", 7))
+    label8.grid(row=4, column=0, padx=20, sticky="w")
 
     #entry1.grid(row=2, column=1, sticky="w")
 
     entry2.grid(row=1, column=1)
     entry3.grid(row=2, column=1)
+    entry4.grid(row=3, column=1)
+    entry5.grid(row=4, column=1)
 
     #entry3.grid(row=4, column=1, sticky="w")
 
-    button1.grid(row=6, column=1)
+    button1.grid(row=7, column=1)
 
-    checkbutton1.grid(row=4, padx= 20, column=1, sticky='w')
+    checkbutton1.grid(row=6, padx= 20, column=1, sticky='w')
     checkbutton2.grid(row=2, padx= 20, column=2, sticky='w')
-    checkbutton3.grid(row=3, padx= 20, column=1, sticky='w')
-    checkbutton4.grid(row=3, padx= 20, column=2, sticky='w')
+    checkbutton3.grid(row=5, padx= 20, column=1, sticky='w')
+    checkbutton4.grid(row=5, padx= 20, column=2, sticky='w')
 
     docu.mainloop() # halts python app for duration of gui
