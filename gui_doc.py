@@ -3,21 +3,22 @@ from tkinter import Frame
 from store_data import store_library
 
 
+
 def import_data(file):
     docu = tk.Tk()
     docu.title("Documentation")
-    docu.geometry("{}x{}".format(500, 300))
-    docu.maxsize(500, 300)
+    docu.geometry("{}x{}".format(600, 300))
+    docu.maxsize(600, 300)
     docu.config(bg="lightgrey")
 
 
-    top = Frame(docu, bg='lightgrey', width=500, height=275)
+    top = Frame(docu, bg='lightgrey', width=600, height=275)
     top.grid_propagate(0)
-    bot = Frame(docu, bg='grey', width=500, height=25)
+    bot = Frame(docu, bg='grey', width=600, height=25)
     bot.grid_propagate(0)
 
-    docu.grid_rowconfigure(0, weight=1)
-    docu.grid_rowconfigure(1, weight=1)
+    #docu.grid_rowconfigure(0, weight=1)
+    #docu.grid_rowconfigure(1, weight=1)
 
     top.grid(row=0)
     bot.grid(row=1)
@@ -34,14 +35,17 @@ def import_data(file):
     top.grid_columnconfigure(1, minsize=100, weight=1)
     top.grid_columnconfigure(2, minsize=100, weight=1)
 
-    var = 'spec'
-    var2 = 'ref'
-    var3 = 'h23'
-    var4 = '29bc'
+    #cb_vars = {var1: 1, var2: 2,var3: 3, var4: 4}
+    var1 = 'a'
+    var2 = 'b'
+    var3 = 'c'
+    var4 = 'd'
+
+    if file == '':
+        docu.destroy()
 
     filesplit = file.split(' ')[0]
     name = filesplit.split('/')[-1]
-
 
     #label1 = tk.Label(docu, text="Datum")
 
@@ -70,19 +74,24 @@ def import_data(file):
                                     entry2.get(),
                                     checkbutton3.getvar(var3),
                                     checkbutton4.getvar(var4),
-                                    checkbutton1.getvar(var),
-                                    checkbutton2.getvar(var2), entry3.get(), entry4.get(),
-                                                 entry5.get()),
-                                   docu.destroy()])
+                                    checkbutton1.getvar(var1),
+                                    checkbutton2.getvar(var2),
+                                    entry3.get(),
+                                    entry4.get(),
+                                    entry5.get()),
+                                    docu.destroy()])
 
-    checkbutton1 = tk.Checkbutton(top, text="Messnadel", variable=var,
+    checkbutton1 = tk.Checkbutton(top, text="Messnadel", variable=var1,
                                  onvalue="m. Nadel", offvalue="o. Nadel", bg='lightgrey')
+    checkbutton1.select()
+
 
     checkbutton2 = tk.Checkbutton(top, text="Referenz", variable=var2,
                                  onvalue='Referenz', offvalue='', bg='lightgrey')
 
     checkbutton3 = tk.Checkbutton(top, text="F-H23", variable=var3,
                                   onvalue='H23', offvalue='', bg='lightgrey')
+    checkbutton3.select()
 
     checkbutton4 = tk.Checkbutton(top, text="SGL-29BC", variable=var4,
                                   onvalue='29BC', offvalue='', bg='lightgrey')
@@ -115,3 +124,6 @@ def import_data(file):
     checkbutton4.grid(row=5, padx= 20, column=2, sticky='w')
 
     docu.mainloop() # halts python app for duration of gui
+
+def close_window(frame):
+    frame.destroy()

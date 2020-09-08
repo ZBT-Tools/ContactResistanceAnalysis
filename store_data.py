@@ -5,12 +5,12 @@ import os
 import tkinter as tk
 from tkinter import messagebox
 
-
 def store_library(file, sample, gdl1, gdl2, spec, ref, thickness, gdl_age, comment):
 
     # read datafile
     df_input = pd.read_csv(file, sep='\t', decimal=',', encoding='cp1252',
                            error_bad_lines=False)
+
     # round dataframa values
     df_input.round(6)
 
@@ -39,12 +39,24 @@ def store_library(file, sample, gdl1, gdl2, spec, ref, thickness, gdl_age, comme
     df_input.fillna(0, inplace=True)
 
     # round pressures and append to df in seperate column
+    pressure_ref = [1, 2, 3, 5, 6, 9, 10, 12, 15, 18, 20, 21, 24, 27, 30]
     pressure_rounded = df_input['pressure_sample[bar]'].round(decimals=0)
+
+
+    #df_input = df_input[df_input['pressure_sample[bar]'] in pressure_ref]
     # current_rounded = df_input['current[mA]'].round(decimals=-2)
 
     # define additional columns for calculations result
     df_input.insert(len(df_input.columns), column='pressure_rounded[bar]',
                     value=pressure_rounded)
+
+    for i in range(1, 31):
+        print(i)
+        if (i in pressure_ref) == False:
+            df_input = df_input[df_input['pressure_rounded[bar]'] != i]
+            print(i)
+
+    print(df_input)
     # df_input.insert(len(df_input.columns), column='current_rounded[mA]',
     #                 value=current_rounded)
 
@@ -212,6 +224,7 @@ def store_library(file, sample, gdl1, gdl2, spec, ref, thickness, gdl_age, comme
 
     # seperate measurements by cycles
     z = int(gdl_age)
+
     rec = 0
     for i, v in df_input['pressure_rounded[bar]'].items():
         if v >= rec:
@@ -259,6 +272,30 @@ def store_library(file, sample, gdl1, gdl2, spec, ref, thickness, gdl_age, comme
 
         df_input = pd.concat(df_corr_list)
 
+    elif ref is not 'Referenz' and gdl2 == '29BC':
+
+        df_corr_list = []
+
+        sgl29_ref = 'sgl29bc_reference.csv'
+        df_sgl29 = pd.read_csv(sgl29_ref)
+
+        for c in cycles:
+            df_input_1 = df_input[df_input['cycle'] == c]
+            pd.option_context('display.max_columns', None)
+            df_sgl29_1 = df_sgl29[df_sgl29['cycle'] == c]
+
+            for p in pressures:
+                df_input_2 = df_input_1[
+                    df_input_1['pressure_rounded[bar]'] == p]
+                df_sgl29_2 = df_sgl29_1[df_sgl29_1['pressure_rounded[bar]'] == p]
+                correction_value = df_sgl29_2[res_main_col].mean()
+                df_input_2.loc[df_input_2[
+                                   'pressure_rounded[bar]'] == p, corr] = correction_value
+                df_corr_list.append(df_input_2)
+
+        df_input = pd.concat(df_corr_list)
+
+
     else:
         df_input.loc[(df_input['pressure_rounded[bar]']) < 31 &
                      (df_input['cycle'] <= 100), corr] = 0
@@ -284,6 +321,8 @@ def store_library(file, sample, gdl1, gdl2, spec, ref, thickness, gdl_age, comme
 
         # add measurement_identifer / cr / cr_error / cr_mean to df
         df_t1.insert(2, 'measurement', measurement_identifier, True)
+
+        cycles = np.unique(df_t1['cycle'].to_numpy(dtype=int))
 
         # seperate measurement-df into different cycles
         for c in cycles:
@@ -338,10 +377,11 @@ def store_library(file, sample, gdl1, gdl2, spec, ref, thickness, gdl_age, comme
             # seperate 'cycle'-df into different pressures
 
             for p in pressures:
-
+                print('measurement: ' + str(m), 'cycle: ' + str(c), 'pressure: ' + str(p))
                 # df-slice of 'cycle'-df with single pressure
 
                 df_t3_p = df_t2_c[df_t2_c['pressure_rounded[bar]'] == p]
+                print(df_t3_p)
 
                 #df_t4_i = df_t3_p[df_t3_p[current_rounded] == i]
 
@@ -349,25 +389,28 @@ def store_library(file, sample, gdl1, gdl2, spec, ref, thickness, gdl_age, comme
 
                 #Gesamtwiderstand [mOhm]
 
-                res_main = (df_t3_p['voltage_th[mV]'] / df_t3_p['current[mA]']) * 1000
+                res_main = (df_t3_p['voltage_th[mV]'] / df_t3_p['current[mA]']) * 1000 #4W
+                print(df_t3_p['voltage_th[mV]'])
+                print(df_t3_p['current[mA]'])
 
                 #! Korrekturwert s. Korrekturschleife -->[corr] in [mOhm]
 
                 #Durchgangswiderstand [mOhm]
-
+                print(res_main)
                 res_through = res_main - df_t3_p[corr]
-
+                print(df_t3_p[corr])
+                print(res_through)
                 #Bulkwiderstand [mOhm]
 
                 if spec == "m. Nadel":
                     res_bulk = (df_t3_p['voltage_needle_th[mV]'] / df_t3_p['current[mA]']) * 1000
                 else:
                     res_bulk = res_main - res_main
-
+                print(res_bulk)
                 #Kontaktwiderstand [mOhm]
 
                 res_contact = (res_through - res_bulk) / 2
-
+                print(res_contact)
                 #volumenspezifischer Gesamtwiderstand [mOhm*cm]
 
                 res_main_vs = res_main * df_t3_p['contact_area[cm2]'] / df_t3_p['sample_thickness[cm]']
@@ -757,8 +800,6 @@ def store_library(file, sample, gdl1, gdl2, spec, ref, thickness, gdl_age, comme
             cell.set_text_props(ma='right')
 
     plt.show()
-
-
 
 
 
