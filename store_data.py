@@ -5,7 +5,7 @@ import os
 import tkinter as tk
 from tkinter import messagebox
 
-def store_library(file, sample, gdl1, gdl2, spec, ref, thickness, gdl_age, comment):
+def store_library(file, sample, gdl1, gdl2, spec, ref, thickness, gdl_age, comment, frame):
 
     # read datafile
     df_input = pd.read_csv(file, sep='\t', decimal=',', encoding='cp1252',
@@ -735,6 +735,8 @@ def store_library(file, sample, gdl1, gdl2, spec, ref, thickness, gdl_age, comme
                 ymax = max(ref_res_main_as_mean)
             elif p == 2:
                 ymax = max(ref_res_main_as_mean)
+            elif p==5:
+                ymax = max(ref_res_main_as_mean)
 
             # graph --> res_mean over cylces (one specific pressure)
 
@@ -766,6 +768,8 @@ def store_library(file, sample, gdl1, gdl2, spec, ref, thickness, gdl_age, comme
     df_import2 = df_import.round(8)
 
     library_name = 'cr_library.csv'
+
+
 
     if os.path.isfile(library_name):
         with open(library_name, newline='') as file:
@@ -799,7 +803,11 @@ def store_library(file, sample, gdl1, gdl2, spec, ref, thickness, gdl_age, comme
             cell._loc = 'right'
             cell.set_text_props(ma='right')
 
+    frame.destroy()
     plt.show()
+
+
+
 
 
 

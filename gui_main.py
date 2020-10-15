@@ -11,17 +11,17 @@ from PIL import ImageTk, Image
 matplotlib.use('TkAgg')
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 
-def get_file():
+def get_file(frame):
     filename = \
         tk.filedialog.askopenfilename(initialdir="C:/Users/Kapp/Desktop/KW - Messungen/",
                                       title="Select file",
                                       filetypes=(
                                                  ("all files", "*.*"),
                                                  ("Text files", "*.txt")))
-    import_data(filename)
+    import_data(frame, filename)
     
 
-def plotter2(dropdown_var, df, canvas, subf1, subf2, subf3, subf4, subf5=None):
+def plotter2(dropdown_var, df, canvas, subf1, subf2,subf3, subf4, subf5):
 
     df_data = df[df['measurement'] == dropdown_var]
     meas = np.unique(df_data['measurement'].to_numpy())
@@ -91,12 +91,18 @@ def plotter2(dropdown_var, df, canvas, subf1, subf2, subf3, subf4, subf5=None):
         df_res_bulk_as_mean.append(res_bulk_as_mean_plot)
         df_res_contact_as_mean.append(res_contact_as_mean_plot)
 
+    # table_data = [
+    #     ["GDL", ''],
+    #     ["Method", '']
+    #     ['Specific', '']
+    # ]
 
-    subf1.plot(pressures, df_res_contact_as_mean, linestyle='dashed', linewidth=2, marker='s', markersize=4, label=meas)
+
+    subf1.plot(pressures, df_res_flow_as_mean, linestyle='dashed', linewidth=2, marker='s', markersize=4, label=meas)
     subf1.legend(loc='upper left', bbox_to_anchor=(-0.28, 1.15), ncol=8, fontsize=8)
-    #subf1.set_ylim([0, 500])
     subf1.set_xlabel('pressure [bar]', labelpad=10, fontdict=dict(fontsize=12, weight='bold'))
-    subf1.set_ylabel('Kontaktwiderstand [mOhm*cm2]', labelpad=10, fontdict=dict(fontsize=12, weight='bold'))
+    subf1.set_ylabel('Durchgangswiderstand [mOhm*cm2]', labelpad=10, fontdict=dict(fontsize=12, weight='bold'))
+    #subf1.table(cellText=table_data, colWidths=[.2, .5], loc='bottom', bbox=[0, -0.4, 0.6, 0.25])
 
     subf2.bar(bar_name, cr_as_at_20bar, width=1)
     subf2.tick_params('x', labelsize=8, labelrotation=90)
@@ -110,21 +116,39 @@ def plotter2(dropdown_var, df, canvas, subf1, subf2, subf3, subf4, subf5=None):
     subf4.tick_params('x', labelsize=8, labelrotation=90)
     subf4.set_ylabel('[mOhm*cm2]', labelpad=10)
 
+
+
     subf5.bar(bar_name, con_bvs_at_20bar, width=1)
     subf5.tick_params('x', labelsize=8, labelrotation=90)
+
+
+
+
+
+    # subf6.table(cellText=table_data, colWidths=[.2, .5], loc='bottom',
+    #                   bbox=[0.45, 0.75, 0.5, 0.2])
 
 
 
     canvas.draw()
 
 def create_archive():
-    archive = tk.Toplevel()
+    archive = tk.Toplevel(menu)
     archive.title('Archive')
     archive.geometry('2000x1000')
-    archive.grid_columnconfigure((0, 0), weight=1)
+    archive.iconbitmap('zbt_logo.ico')
+
+    # top = Frame(archive, bg='lightgrey', width=600, height=275)
+    # top.grid_propagate(0)
+    # bot = Frame(archive, bg='grey', width=600, height=25)
+    # bot.grid_propagate(0)
+
+    #top.grid_columnconfigure((0, 0), weight=1)
+    # bot.grid_columnconfigure((0, 0), weight=1)
+
 
     # #read library and get names of measurements
-    df_lib = pd.read_csv('cr_library.csv')
+    df_lib = pd.read_csv('cr_library.csv', delimiter=',')
     measurement_name = df_lib['measurement'].unique()
 
     #set startvalue and define optionmenu
@@ -136,15 +160,36 @@ def create_archive():
 
     option.pack()
 
+    varmr = '1'
+    checkbutton1 = tk.Checkbutton(archive, text="Gesamtwiderstand",
+                                  variable=varmr,
+                                  onvalue="GW", offvalue="",
+                                  bg='lightgrey')
+    varfr = '2'
+    checkbutton2 = tk.Checkbutton(archive, text="Durchgangswiderstand",
+                                  variable=varfr,
+                                  onvalue="DW", offvalue="",
+                                  bg='lightgrey')
+    varcr = '3'
+    checkbutton3 = tk.Checkbutton(archive, text="Kontaktwiderstand",
+                                  variable=varcr,
+                                  onvalue="KW", offvalue="",
+                                  bg='lightgrey')
+    # checkbutton1.pack()
+    # checkbutton2.pack()
+    # checkbutton3.pack()
+
     fig = Figure(figsize=(50, 50))
     grid = fig.add_gridspec(13, 18)
 
+    fig_ax1 = fig.add_subplot(grid[:13, :-8])
+    fig_ax1.set_title('Durchgangswiderstand', pad=10, fontdict=dict(fontsize=16, weight='bold'))
+    # fig_ax1.text(0.05, -0.1, table_data, style='italic',
+    #     bbox={'facecolor': 'blue', 'alpha': 0.5, 'pad': 10})
 
-
-    fig_ax1 = fig.add_subplot(grid[:10, :-8])
-    fig_ax1.set_title('Kontaktwiderstand', pad=10, fontdict=dict(fontsize=16, weight='bold'))
-    #fig_ax1.set_xlim([0, 21])
-    #fig_ax1.set_ylim([0, 50])
+    #fig_ax1.table('test', cellColours='blue', bbox=[0.05, -0.1, 0.5, 0.2])
+    fig_ax1.set_xlim([4, 30])
+    fig_ax1.set_ylim([0, 400])
 
     fig_ax2 = fig.add_subplot(grid[1:6, 5:9])
     fig_ax2.set_title('Kontaktwiderstand @ 20bar', fontdict=dict(fontsize=10, weight='bold'))
@@ -158,6 +203,7 @@ def create_archive():
     fig_ax5 = fig.add_subplot(grid[10:13, 12:])
     fig_ax5.set_title('volumetrischer Bulk-Leitwert [S/cm] @ 20bar', pad=10, fontdict=dict(fontsize=10, weight='bold'))
 
+    # fig_ax6 = fig.add_subplot(grid[11:13, :-8])
     plot_canvas = FigureCanvasTkAgg(fig, master=archive)
     plot_canvas.get_tk_widget().pack()
 
@@ -190,7 +236,7 @@ center.grid_columnconfigure(1, minsize=100, weight=1)
 
 #Tkinter Objects
 button1 = tk.Button(top, text='Import new Measurement', width=40,
-                    command=get_file)
+                    command=lambda: get_file(menu))
 
 button2 = tk.Button(top, text='Analyze Data', width=40,
                     command=lambda: create_archive())

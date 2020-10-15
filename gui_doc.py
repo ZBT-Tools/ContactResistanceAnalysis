@@ -2,15 +2,13 @@ import tkinter as tk
 from tkinter import Frame
 from store_data import store_library
 
-
-
-def import_data(file):
-    docu = tk.Tk()
+def import_data(frame, file):
+    docu = tk.Toplevel(frame)
     docu.title("Documentation")
     docu.geometry("{}x{}".format(600, 300))
     docu.maxsize(600, 300)
     docu.config(bg="lightgrey")
-
+    docu.iconbitmap('zbt_logo.ico')
 
     top = Frame(docu, bg='lightgrey', width=600, height=275)
     top.grid_propagate(0)
@@ -31,9 +29,9 @@ def import_data(file):
     top.grid_columnconfigure(2, minsize=100, weight=1)
 
     bot.grid_rowconfigure(1, minsize=25, weight=1)
-    top.grid_columnconfigure(0, minsize=100, weight=1)
-    top.grid_columnconfigure(1, minsize=100, weight=1)
-    top.grid_columnconfigure(2, minsize=100, weight=1)
+    bot.grid_columnconfigure(0, minsize=100, weight=1)
+    bot.grid_columnconfigure(1, minsize=100, weight=1)
+    bot.grid_columnconfigure(2, minsize=100, weight=1)
 
     #cb_vars = {var1: 1, var2: 2,var3: 3, var4: 4}
     var1 = 'a'
@@ -70,7 +68,7 @@ def import_data(file):
 
     button1 = \
         tk.Button(top, text='OK', width=20, bd=5,
-                  command=lambda: [store_library(file,
+                  command=lambda: store_library(file,
                                     entry2.get(),
                                     checkbutton3.getvar(var3),
                                     checkbutton4.getvar(var4),
@@ -78,11 +76,11 @@ def import_data(file):
                                     checkbutton2.getvar(var2),
                                     entry3.get(),
                                     entry4.get(),
-                                    entry5.get()),
-                                    docu.destroy()])
+                                    entry5.get(), docu))
 
     checkbutton1 = tk.Checkbutton(top, text="Messnadel", variable=var1,
-                                 onvalue="m. Nadel", offvalue="o. Nadel", bg='lightgrey')
+                                 onvalue="m. Nadel", offvalue="o. Nadel",
+                                  bg='lightgrey')
     checkbutton1.select()
 
 
