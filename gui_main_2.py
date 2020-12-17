@@ -111,15 +111,13 @@ def plotter2(dropdown_var, df, canvas, subf1, subf3, subf4, subf5):
     #     ['Specific', '']
     # ]
 
-    subf1.plot(pressures, df_res_flow_as_mean, linestyle='dashed', linewidth=2, marker='s', markersize=4, label=str(meas))
-    # subf1.plot(pressures, df_res_contact_as_mean, linestyle='dashed', linewidth=2, marker='s', markersize=4, label='Kontaktwiderstand') #meas
-    # subf1.plot(pressures, df_res_bulk_as_mean, linestyle='dashed', linewidth=2, marker='s', markersize=4, label='Bulkwiderstand')
-    #subf1.legend(loc='upper left', bbox_to_anchor=(-0.28, 1.15), ncol=8, fontsize=16)
-    subf1.legend(loc='best', fontsize=16)
-    subf1.set_xlabel('Anpressdruck [bar]', labelpad=10, fontdict=dict(fontsize=14, weight='bold'))
-    subf1.set_ylabel('Durchgangswiderstand [mOhm*cm2]', labelpad=10, fontdict=dict(fontsize=14, weight='bold'))
-    subf1.tick_params(labelsize='large')
 
+    subf1.plot(pressures, df_res_contact_as_mean, linestyle='dashed', linewidth=2, marker='s', markersize=4, label=meas)
+    subf1.plot(pressures, df_res_flow_as_mean, linestyle='dashed', linewidth=2, marker='s', markersize=4, label=meas)
+    subf1.plot(pressures, df_res_bulk_as_mean, linestyle='dashed', linewidth=2, marker='s', markersize=4, label=meas)
+    subf1.legend(loc='upper left', bbox_to_anchor=(-0.28, 1.15), ncol=8, fontsize=8)
+    subf1.set_xlabel('pressure [bar]', labelpad=10, fontdict=dict(fontsize=12, weight='bold'))
+    subf1.set_ylabel('Durchgangswiderstand [mOhm*cm2]', labelpad=10, fontdict=dict(fontsize=12, weight='bold'))
     #subf1.table(cellText=table_data, colWidths=[.2, .5], loc='bottom', bbox=[0, -0.4, 0.6, 0.25])
 
     # subf2.bar(bar_name, cr_as_at_10bar, width=1)
@@ -127,22 +125,17 @@ def plotter2(dropdown_var, df, canvas, subf1, subf3, subf4, subf5):
     # subf2.set_ylabel('[mOhm*cm2]', labelpad=10)
 
     subf3.bar(bar_name, con_mvs_at_10bar, width=1)
-    subf3.get_xaxis().set_visible(False)
-    subf3.tick_params('x', labelsize=8, labelrotation=40)
-    subf3.tick_params('y', labelsize=10)
-    subf3.set_ylabel('[S/cm]', labelpad=10, fontdict=dict(fontsize=14, weight='bold'))
+    subf3.tick_params('x', labelsize=8, labelrotation=90)
+    subf3.set_ylabel('[mOhm*cm2]', labelpad=10)
 
     subf4.bar(bar_name, con_fvs_at_10bar, width=1)
-    subf4.get_xaxis().set_visible(False)
-    subf4.tick_params('x', labelsize=8, labelrotation=40)
-    subf4.tick_params('y', labelsize=10)
-    subf4.set_ylabel('[S/cm]', labelpad=10, fontdict=dict(fontsize=14, weight='bold'))
+    subf4.tick_params('x', labelsize=8, labelrotation=90)
+    subf4.set_ylabel('[mOhm*cm2]', labelpad=10)
+
+
 
     subf5.bar(bar_name, con_bvs_at_10bar, width=1)
-    subf5.get_xaxis().set_visible(False)
-    subf5.tick_params('x', labelsize=8, labelrotation=40)
-    subf5.tick_params('y', labelsize=10)
-    subf5.set_ylabel('[S/cm]', labelpad=10, fontdict=dict(fontsize=14, weight='bold'))
+    subf5.tick_params('x', labelsize=8, labelrotation=90)
 
 
 
@@ -206,25 +199,25 @@ def create_archive():
     grid = fig.add_gridspec(13, 18)
 
     fig_ax1 = fig.add_subplot(grid[:13, :-8])
-    fig_ax1.set_title('Durchgangswiderstand (1.4404-H23 verschieden)', pad=10, fontdict=dict(fontsize=18, weight='bold'))
+    fig_ax1.set_title('Kontaktwiderstand', pad=10, fontdict=dict(fontsize=16, weight='bold'))
     # fig_ax1.text(0.05, -0.1, table_data, style='italic',
     #     bbox={'facecolor': 'blue', 'alpha': 0.5, 'pad': 10})
 
     #fig_ax1.table('test', cellColours='blue', bbox=[0.05, -0.1, 0.5, 0.2])
     fig_ax1.set_xlim([0, 31])
-    fig_ax1.set_ylim([0, 200])
+    fig_ax1.set_ylim([0, 600])
 
     # fig_ax2 = fig.add_subplot(grid[1:6, 5:9])
     # fig_ax2.set_title('Kontaktwiderstand @ 10bar', fontdict=dict(fontsize=10, weight='bold'))
 
     fig_ax3 = fig.add_subplot(grid[0:3, 12:])
-    fig_ax3.set_title('volumetrischer Gesamt-Leitwert [S/cm] @ 10bar', pad=10, fontdict=dict(fontsize=14, weight='bold'))
+    fig_ax3.set_title('volumetrischer Gesamt-Leitwert [S/cm] @ 10bar', pad=10, fontdict=dict(fontsize=10, weight='bold'))
 
     fig_ax4 = fig.add_subplot(grid[5:8, 12:])
-    fig_ax4.set_title('volumetrischer Durchgangs-Leitwert [S/cm] @ 10bar', pad=10, fontdict=dict(fontsize=14, weight='bold'))
+    fig_ax4.set_title('volumetrischer Durchgangs-Leitwert [S/cm] @ 10bar', pad=10, fontdict=dict(fontsize=10, weight='bold'))
 
     fig_ax5 = fig.add_subplot(grid[10:13, 12:])
-    fig_ax5.set_title('volumetrischer Bulk-Leitwert [S/cm] @ 10bar', pad=10, fontdict=dict(fontsize=14, weight='bold'))
+    fig_ax5.set_title('volumetrischer Bulk-Leitwert [S/cm] @ 10bar', pad=10, fontdict=dict(fontsize=10, weight='bold'))
 
     # fig_ax6 = fig.add_subplot(grid[11:13, :-8])
     plot_canvas = FigureCanvasTkAgg(fig, master=archive)

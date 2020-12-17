@@ -792,7 +792,6 @@ def store_library(file, sample, gdl1, gdl2, spec, ref, thickness, gdl_age, comme
                       bbox=[0.45, 0.75, 0.5, 0.2])
 
 
-
     for (row, col), cell in table.get_celld().items():
         if col == 0:
             cell.set_height(1.3)
