@@ -1,8 +1,8 @@
-import tkinter as tk
+import pandas as pd
 
-root = tk.Tk()
-img = ImageTk.PhotoImage(Image.open(path))
-panel = tk.Label(root, image = img)
-panel.pack(side = "bottom", fill = "both", expand = "yes")
+file= 'C:/Users/Kapp/Desktop/KW - Messungen/FEM/20201217/fem_1_Ni'
 
-root.mainloop()
+df_input = pd.read_csv(file, sep='\t', decimal=',', encoding='cp1252',
+                           error_bad_lines=False)
+
+print(df_input)

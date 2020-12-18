@@ -42,7 +42,6 @@ def plotter2(dropdown_var, df, canvas, subf1, subf3, subf4, subf5):
     for p in pressures:
 
         df_data2 = df_data[df_data['pressure_rounded[bar]'] == p]
-
         res_main_as_plot = df_data2['as_main_resistance_mean[mOhm*cm2]']
         res_through_as_plot = df_data2['as_flow_resistance_mean[mOhm*cm2]']
         res_bulk_as_plot = df_data2['as_bulk_resistance_mean[mOhm*cm2]']
@@ -111,6 +110,7 @@ def plotter2(dropdown_var, df, canvas, subf1, subf3, subf4, subf5):
     #     ['Specific', '']
     # ]
 
+
     subf1.plot(pressures, df_res_flow_as_mean, linestyle='dashed', linewidth=2, marker='s', markersize=4, label=str(meas))
     # subf1.plot(pressures, df_res_contact_as_mean, linestyle='dashed', linewidth=2, marker='s', markersize=4, label='Kontaktwiderstand') #meas
     # subf1.plot(pressures, df_res_bulk_as_mean, linestyle='dashed', linewidth=2, marker='s', markersize=4, label='Bulkwiderstand')
@@ -127,19 +127,19 @@ def plotter2(dropdown_var, df, canvas, subf1, subf3, subf4, subf5):
     # subf2.set_ylabel('[mOhm*cm2]', labelpad=10)
 
     subf3.bar(bar_name, con_mvs_at_10bar, width=1)
-    subf3.get_xaxis().set_visible(False)
+    #subf3.get_xaxis().set_visible(False)
     subf3.tick_params('x', labelsize=8, labelrotation=40)
     subf3.tick_params('y', labelsize=10)
     subf3.set_ylabel('[S/cm]', labelpad=10, fontdict=dict(fontsize=14, weight='bold'))
 
     subf4.bar(bar_name, con_fvs_at_10bar, width=1)
-    subf4.get_xaxis().set_visible(False)
+    #subf4.get_xaxis().set_visible(False)
     subf4.tick_params('x', labelsize=8, labelrotation=40)
     subf4.tick_params('y', labelsize=10)
     subf4.set_ylabel('[S/cm]', labelpad=10, fontdict=dict(fontsize=14, weight='bold'))
 
     subf5.bar(bar_name, con_bvs_at_10bar, width=1)
-    subf5.get_xaxis().set_visible(False)
+    #subf5.get_xaxis().set_visible(False)
     subf5.tick_params('x', labelsize=8, labelrotation=40)
     subf5.tick_params('y', labelsize=10)
     subf5.set_ylabel('[S/cm]', labelpad=10, fontdict=dict(fontsize=14, weight='bold'))
@@ -206,13 +206,13 @@ def create_archive():
     grid = fig.add_gridspec(13, 18)
 
     fig_ax1 = fig.add_subplot(grid[:13, :-8])
-    fig_ax1.set_title('Durchgangswiderstand (1.4404-H23 verschieden)', pad=10, fontdict=dict(fontsize=18, weight='bold'))
+    fig_ax1.set_title('Durchgangswiderstand - Proben(1-6)', pad=10, fontdict=dict(fontsize=18, weight='bold'))
     # fig_ax1.text(0.05, -0.1, table_data, style='italic',
     #     bbox={'facecolor': 'blue', 'alpha': 0.5, 'pad': 10})
 
     #fig_ax1.table('test', cellColours='blue', bbox=[0.05, -0.1, 0.5, 0.2])
-    fig_ax1.set_xlim([0, 31])
-    fig_ax1.set_ylim([0, 200])
+    fig_ax1.set_xlim([6, 20])
+    fig_ax1.set_ylim([0, 75])
 
     # fig_ax2 = fig.add_subplot(grid[1:6, 5:9])
     # fig_ax2.set_title('Kontaktwiderstand @ 10bar', fontdict=dict(fontsize=10, weight='bold'))
