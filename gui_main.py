@@ -21,7 +21,7 @@ def get_file(frame):
     import_data(frame, filename)
 
 
-def plotter2(dropdown_var, df, canvas, subf1, subf3, subf4, subf5):
+def plotter2(dropdown_var, df, canvas, subf1, subf2, subf3, subf4, subf5):
 
     df_data = df[df['measurement'] == dropdown_var]
     meas = np.unique(df_data['measurement'].to_numpy())
@@ -122,9 +122,9 @@ def plotter2(dropdown_var, df, canvas, subf1, subf3, subf4, subf5):
 
     #subf1.table(cellText=table_data, colWidths=[.2, .5], loc='bottom', bbox=[0, -0.4, 0.6, 0.25])
 
-    # subf2.bar(bar_name, cr_as_at_10bar, width=1)
-    # subf2.tick_params('x', labelsize=8, labelrotation=90)
-    # subf2.set_ylabel('[mOhm*cm2]', labelpad=10)
+    subf2.bar(bar_name, cr_as_at_10bar, width=1)
+    subf2.tick_params('x', labelsize=8, labelrotation=90)
+    subf2.set_ylabel('[mOhm*cm2]', labelpad=10)
 
     subf3.bar(bar_name, con_mvs_at_10bar, width=1)
     #subf3.get_xaxis().set_visible(False)
@@ -143,10 +143,6 @@ def plotter2(dropdown_var, df, canvas, subf1, subf3, subf4, subf5):
     subf5.tick_params('x', labelsize=8, labelrotation=40)
     subf5.tick_params('y', labelsize=10)
     subf5.set_ylabel('[S/cm]', labelpad=10, fontdict=dict(fontsize=14, weight='bold'))
-
-
-
-
 
     # subf6.table(cellText=table_data, colWidths=[.2, .5], loc='bottom',
     #                   bbox=[0.45, 0.75, 0.5, 0.2])
@@ -171,7 +167,7 @@ def create_archive():
 
 
     # #read library and get names of measurements
-    df_lib = pd.read_csv('cr_library.csv', delimiter=',')
+    df_lib = pd.read_csv('cr_library.csv', delimiter='\t')
     measurement_name = df_lib['measurement'].unique()
 
     #set startvalue and define optionmenu
@@ -179,7 +175,7 @@ def create_archive():
     var.set(measurement_name[0])
     option = tk.OptionMenu(archive, var, *measurement_name,
                            command=lambda _: plotter2(var.get(), df_lib,
-                                                      plot_canvas, fig_ax1, fig_ax3, fig_ax4, fig_ax5))
+                                                      plot_canvas, fig_ax1, fig_ax2, fig_ax3, fig_ax4, fig_ax5))
 
     option.pack()
 
@@ -206,16 +202,16 @@ def create_archive():
     grid = fig.add_gridspec(13, 18)
 
     fig_ax1 = fig.add_subplot(grid[:13, :-8])
-    fig_ax1.set_title('Durchgangswiderstand - Proben(1-6)', pad=10, fontdict=dict(fontsize=18, weight='bold'))
+    fig_ax1.set_title('Durchgangswiderstand - Muster(1-6)', pad=10, fontdict=dict(fontsize=18, weight='bold'))
     # fig_ax1.text(0.05, -0.1, table_data, style='italic',
     #     bbox={'facecolor': 'blue', 'alpha': 0.5, 'pad': 10})
 
     #fig_ax1.table('test', cellColours='blue', bbox=[0.05, -0.1, 0.5, 0.2])
-    fig_ax1.set_xlim([6, 20])
-    fig_ax1.set_ylim([0, 75])
+    fig_ax1.set_xlim([6, 30])
+    fig_ax1.set_ylim([0, 400])
 
-    # fig_ax2 = fig.add_subplot(grid[1:6, 5:9])
-    # fig_ax2.set_title('Kontaktwiderstand @ 10bar', fontdict=dict(fontsize=10, weight='bold'))
+    fig_ax2 = fig.add_subplot(grid[1:6, 5:9])
+    fig_ax2.set_title('Kontaktwiderstand @ 20bar', fontdict=dict(fontsize=10, weight='bold'))
 
     fig_ax3 = fig.add_subplot(grid[0:3, 12:])
     fig_ax3.set_title('volumetrischer Gesamt-Leitwert [S/cm] @ 10bar', pad=10, fontdict=dict(fontsize=14, weight='bold'))

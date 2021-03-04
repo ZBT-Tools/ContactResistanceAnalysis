@@ -4,6 +4,8 @@ import numpy as np
 import os
 import tkinter as tk
 from tkinter import messagebox
+import pathlib
+from openpyxl import load_workbook
 
 def store_library(file, sample, gdl1, gdl2, spec, ref, thickness, gdl_age, comment, frame):
 
@@ -23,7 +25,7 @@ def store_library(file, sample, gdl1, gdl2, spec, ref, thickness, gdl_age, comme
     df_input.rename(columns={df_input.iloc[0,0]:'date', 'Uhrzeit':'time',
                                 'Kommentar':'measurement',
                                 'p_Probe_Ist / bar':'pressure_sample[bar]',
-                                'I_Ist / mA': 'current[mA]',
+                                'I_Ist / mA':'current[mA]',
                                 'U_ges / mV':'voltage[mV]',
                                 'U_Nadel / mV':'voltage_needle[mV]',
                                 'U_ges-Th_U': 'voltage_th[mV]',
@@ -54,7 +56,6 @@ def store_library(file, sample, gdl1, gdl2, spec, ref, thickness, gdl_age, comme
         if (i in pressure_ref) == False:
             df_input = df_input[df_input['pressure_rounded[bar]'] != i]
 
-    print(df_input)
     # df_input.insert(len(df_input.columns), column='current_rounded[mA]',
     #                 value=current_rounded)
 
@@ -216,6 +217,9 @@ def store_library(file, sample, gdl1, gdl2, spec, ref, thickness, gdl_age, comme
     corr = 'degradation_corr[mOhm]'
     df_input.insert(len(df_input.columns), corr, 0.0)
 
+    as_corr = 'as_degradation_corr[mOhm*cm2]'
+    df_input.insert(len(df_input.columns), as_corr, 0.0)
+
     #Messzyklus
     cycle = 'cycle'
     df_input.insert(len(df_input.columns), cycle, 0.0)
@@ -223,6 +227,7 @@ def store_library(file, sample, gdl1, gdl2, spec, ref, thickness, gdl_age, comme
     # seperate measurements by cycles
     z = int(gdl_age)
 
+    print(df_input['current[mA]'])
     rec = 0
     for i, v in df_input['pressure_rounded[bar]'].items():
         if v >= rec:
@@ -254,19 +259,31 @@ def store_library(file, sample, gdl1, gdl2, spec, ref, thickness, gdl_age, comme
         df_corr_list = []
 
         h23_ref = 'h23_reference.csv'
-        df_h23 = pd.read_csv(h23_ref)
+        df_h23 = pd.read_csv(h23_ref, sep='\t')
 
         for c in cycles:
             df_input_1 = df_input[df_input['cycle'] == c]
             pd.option_context('display.max_columns', None)
-            df_h23_1 = df_h23[df_h23['cycle'] == c]
+            df_h23_1 = df_h23[df_h23['cycle'] == c-1]
 
             for p in pressures:
-                df_input_2 = df_input_1[df_input_1['pressure_rounded[bar]'] == p]
-                df_h23_2 = df_h23_1[df_h23_1['pressure_rounded[bar]'] == p]
-                correction_value = df_h23_2[res_main_col].mean()
-                df_input_2.loc[df_input_2['pressure_rounded[bar]'] == p, corr] = correction_value
-                df_corr_list.append(df_input_2)
+
+                if p in pressure_ref:
+                    df_input_2 = df_input_1[df_input_1['pressure_rounded[bar]'] == p]
+                    df_h23_2 = df_h23_1[df_h23_1['pressure_rounded[bar]'] == p]
+                    correction_value = df_h23_2['as_main_resistance[mOhm*cm2]'].mean() / df_h23_2['contact_area[cm2]'].mean()
+                    df_input_2.loc[df_input_2['pressure_rounded[bar]'] == p, corr] = correction_value
+                    df_input_2.loc[df_input_2['pressure_rounded[bar]'] == p, as_corr] = df_h23_2['as_main_resistance[mOhm*cm2]'].mean()
+                    df_corr_list.append(df_input_2)
+                else:
+                    p_nearest = min(pressure_ref, key=lambda x:abs(x-p))
+
+                    df_input_2 = df_input_1[df_input_1['pressure_rounded[bar]'] == p_nearest]
+                    df_h23_2 = df_h23_1[df_h23_1['pressure_rounded[bar]'] == p_nearest]
+                    correction_value = df_h23_2['as_main_resistance[mOhm*cm2]'].mean() / df_h23_2['contact_area[cm2]'].mean()
+                    df_input_2.loc[df_input_2['pressure_rounded[bar]'] == p_nearest, corr] = correction_value
+                    df_input_2.loc[df_input_2['pressure_rounded[bar]'] == p_nearest, as_corr] = df_h23_2['as_main_resistance[mOhm*cm2]'].mean()
+                    df_corr_list.append(df_input_2)
 
         df_input = pd.concat(df_corr_list)
 
@@ -286,7 +303,7 @@ def store_library(file, sample, gdl1, gdl2, spec, ref, thickness, gdl_age, comme
                 df_input_2 = df_input_1[
                     df_input_1['pressure_rounded[bar]'] == p]
                 df_sgl29_2 = df_sgl29_1[df_sgl29_1['pressure_rounded[bar]'] == p]
-                correction_value = df_sgl29_2[res_main_col].mean()
+                correction_value = df_sgl29_2['as_main_resistance[mOhm*cm2]'].mean()
                 df_input_2.loc[df_input_2['pressure_rounded[bar]'] == p, corr] = correction_value
                 df_corr_list.append(df_input_2)
 
@@ -297,7 +314,7 @@ def store_library(file, sample, gdl1, gdl2, spec, ref, thickness, gdl_age, comme
         df_input.loc[(df_input['pressure_rounded[bar]']) < 31 &
                      (df_input['cycle'] <= 100), corr] = 0
 
-    #TODO: Implementierung SGL 29BC Korrrektur
+
 
     # create variable for storage in library --> file_identifier
     #file_identifier = ref + ' ' + sample + ' ' + gdl1 + gdl2 + spec
@@ -374,11 +391,12 @@ def store_library(file, sample, gdl1, gdl2, spec, ref, thickness, gdl_age, comme
             # seperate 'cycle'-df into different pressures
 
             for p in pressures:
-                print('measurement: ' + str(m), 'cycle: ' + str(c), 'pressure: ' + str(p))
+                print(p)
+                #print('measurement: ' + str(m), 'cycle: ' + str(c), 'pressure: ' + str(p))
                 # df-slice of 'cycle'-df with single pressure
 
                 df_t3_p = df_t2_c[df_t2_c['pressure_rounded[bar]'] == p]
-                print(df_t3_p)
+                #print(df_t3_p)
 
                 #df_t4_i = df_t3_p[df_t3_p[current_rounded] == i]
 
@@ -387,73 +405,70 @@ def store_library(file, sample, gdl1, gdl2, spec, ref, thickness, gdl_age, comme
                 #Gesamtwiderstand [mOhm]
 
                 res_main = (df_t3_p['voltage_th[mV]'] / df_t3_p['current[mA]']) * 1000 #4W
-                print(df_t3_p['voltage_th[mV]'])
-                print(df_t3_p['current[mA]'])
 
                 #! Korrekturwert s. Korrekturschleife -->[corr] in [mOhm]
 
                 #Durchgangswiderstand [mOhm]
-                print(res_main)
+
                 res_through = res_main - df_t3_p[corr]
-                print(df_t3_p[corr])
-                print(res_through)
+
                 #Bulkwiderstand [mOhm]
 
                 if spec == "m. Nadel":
                     res_bulk = (df_t3_p['voltage_needle_th[mV]'] / df_t3_p['current[mA]']) * 1000
                 else:
                     res_bulk = res_main - res_main
-                print(res_bulk)
+
                 #Kontaktwiderstand [mOhm]
 
                 res_contact = (res_through - res_bulk) / 2
-                print(res_contact)
+
                 #volumenspezifischer Gesamtwiderstand [mOhm*cm]
 
                 res_main_vs = res_main * df_t3_p['contact_area[cm2]'] / df_t3_p['sample_thickness[cm]']
-                print(res_main_vs)
+
                 #volumenspezifischer Durchgangswiderstand [mOhm*cm]
 
                 res_through_vs = res_through * df_t3_p['contact_area[cm2]'] / df_t3_p['sample_thickness[cm]']
-                print(res_through_vs)
+
                 #volumenspezifischer Bulkwiderstand [mOhm*cm]
 
                 res_bulk_vs = res_bulk * df_t3_p['contact_area[cm2]'] / df_t3_p['sample_thickness[cm]']
-                print(res_bulk_vs)
+
 
                 # flächenspezifischer Gesamtwiderstand [mOhm*cm2]
 
                 res_main_as = res_main * df_t3_p['contact_area[cm2]']
-                print(res_main)
+
                 # flächenspezifscher Durchgangswiderstand [mOhm*cm2]
 
                 res_through_as = res_through * df_t3_p['contact_area[cm2]']
-                print(res_through_as)
+
 
                 # flächenspezifischer Bulkwiderstand [mOhm*cm2]
 
                 res_bulk_as = res_bulk * df_t3_p['contact_area[cm2]']
-                print(res_bulk_as)
+
 
                 # flächenspezifischer Kontaktwiderstand [mOhm*cm2]
 
                 res_contact_as = res_contact * df_t3_p['contact_area[cm2]']
-                print(res_contact_as)
+
 
                 # volumenspezifischer Gesamtleitwert [S/cm]
 
                 con_main_vs = df_input['[mV] in [V]'] / res_main_vs
-                print(con_main_vs)
+
 
                 # volumenspezifischer Durchgangsleitwert [S/cm]
 
                 con_through_vs = df_input['[mV] in [V]'] / res_through_vs
-                print(con_through_vs)
+
 
                 #volumenspezifischer Bulk-Leitwert [S/cm]
 
                 con_bulk_vs = df_input['[mV] in [V]'] / res_bulk_vs
-                print(con_through_vs)
+
 
 
                 # get mean- and sem-value of calculated resistance
@@ -501,7 +516,7 @@ def store_library(file, sample, gdl1, gdl2, spec, ref, thickness, gdl_age, comme
                 con_bulk_vs_error = con_bulk_vs.sem()
 
                 pd.set_option('display.max_columns', None)
-                print(df_t3_p)
+                #print(df_t3_p)
                 # write data --> cr-mean and cr-sem in df-slice
 
                 df_t3_p.loc[df_t3_p['pressure_rounded[bar]'] == p, res_main_col] = res_main
@@ -548,7 +563,7 @@ def store_library(file, sample, gdl1, gdl2, spec, ref, thickness, gdl_age, comme
                 df_t3_p.loc[df_t3_p['pressure_rounded[bar]'] == p, res_contact_as_mean_col] = res_contact_as_mean
                 df_t3_p.loc[df_t3_p['pressure_rounded[bar]'] == p, res_contact_as_error_col] = res_contact_as_error
 
-                print(df_t3_p)
+                print(p, df_t3_p.loc[df_t3_p['pressure_rounded[bar]'] == p, con_main_vs_col])
 
                 df_t3_p.loc[df_t3_p['pressure_rounded[bar]'] == p, con_main_vs_col] = con_main_vs
                 df_t3_p.loc[df_t3_p['pressure_rounded[bar]'] == p, con_main_vs_mean_col] = con_main_vs_mean
@@ -781,17 +796,63 @@ def store_library(file, sample, gdl1, gdl2, spec, ref, thickness, gdl_age, comme
 
     library_name = 'cr_library.csv'
 
+    #TODO: implementation of value table export in excelfile
 
+    #create table-df
+    df_import2.sort_values(by=['cycle'])
+    summary = {#'Zyklen':df_import2['cycle'].apply(lambda x: x+1-int(gdl_age)),
+               'Gesamtwiderstand @5bar [mOhm*cm2]':df_import2[df_import2['pressure_rounded[bar]'] == 5]['as_main_resistance[mOhm*cm2]'],
+               'Bulkwiderstand @5bar [mOhm*cm2]':df_import2[df_import2['pressure_rounded[bar]'] == 5]['as_bulk_resistance[mOhm*cm2]'],
+               'Durchgangswiderstand @5bar [mOhm*cm2]':df_import2[df_import2['pressure_rounded[bar]'] == 5]['as_flow_resistance[mOhm*cm2]'],
+               'Kontaktwiderstand @5bar [mOhm*cm2]':df_import2[df_import2['pressure_rounded[bar]'] == 5]['as_contact_resistance[mOhm*cm2]'],
+               'Korrekturwert GDL @5bar/cycle [mOhm*cm2]':df_import2[df_import2['pressure_rounded[bar]'] == 5]['as_degradation_corr[mOhm*cm2]'],
+
+               'Gesamtwiderstand @10bar [mOhm*cm2]':df_import2[df_import2['pressure_rounded[bar]'] == 10]['as_main_resistance[mOhm*cm2]'],
+               'Bulkwiderstand @10bar [mOhm*cm2]':df_import2[df_import2['pressure_rounded[bar]'] == 10]['as_bulk_resistance[mOhm*cm2]'],
+               'Durchgangswiderstand @10bar [mOhm*cm2]':df_import2[df_import2['pressure_rounded[bar]'] == 10]['as_flow_resistance[mOhm*cm2]'],
+               'Kontaktwiderstand @10bar [mOhm*cm2]':df_import2[df_import2['pressure_rounded[bar]'] == 10]['as_contact_resistance[mOhm*cm2]'],
+               'Korrekturwert GDL @10bar/cycle [mOhm*cm2]':df_import2[df_import2['pressure_rounded[bar]'] == 10]['as_degradation_corr[mOhm*cm2]'],
+
+               'Gesamtwiderstand @20bar [mOhm*cm2]':df_import2[df_import2['pressure_rounded[bar]'] == 20]['as_main_resistance[mOhm*cm2]'],
+               'Bulkwiderstand @20bar [mOhm*cm2]':df_import2[df_import2['pressure_rounded[bar]'] == 20]['as_bulk_resistance[mOhm*cm2]'],
+               'Durchgangswiderstand @20bar [mOhm*cm2]':df_import2[df_import2['pressure_rounded[bar]'] == 20]['as_flow_resistance[mOhm*cm2]'],
+               'Kontaktwiderstand @20bar [mOhm*cm2]':df_import2[df_import2['pressure_rounded[bar]'] == 20]['as_contact_resistance[mOhm*cm2]'],
+               'Korrekturwert GDL @20bar/cycle [mOhm*cm2]':df_import2[df_import2['pressure_rounded[bar]'] == 20]['as_degradation_corr[mOhm*cm2]'],
+
+               'Gesamtwiderstand @30bar [mOhm*cm2]':df_import2[df_import2['pressure_rounded[bar]'] == 30]['as_main_resistance[mOhm*cm2]'],
+               'Bulkwiderstand @30bar [mOhm*cm2]':df_import2[df_import2['pressure_rounded[bar]'] == 30]['as_bulk_resistance[mOhm*cm2]'],
+               'Durchgangswiderstand @30bar [mOhm*cm2]':df_import2[df_import2['pressure_rounded[bar]'] == 30]['as_flow_resistance[mOhm*cm2]'],
+               'Kontaktwiderstand @30bar [mOhm*cm2]':df_import2[df_import2['pressure_rounded[bar]'] == 30]['as_contact_resistance[mOhm*cm2]'],
+               'Korrekturwert GDL @30bar/cycle [mOhm*cm2]':df_import2[df_import2['pressure_rounded[bar]'] == 30]['as_degradation_corr[mOhm*cm2]'],
+               }
+
+    df_summary = pd.DataFrame(data=summary)
+
+    #export table-df to excel
+
+    rootpath = pathlib.Path(__file__).parent.absolute()
+    df_summary.to_csv(str(rootpath) + '/ECR_data/CSV/' + sample + '.csv',
+                  mode='w', header=True,index=False, sep='\t')
+
+    # save eis data to excel
+    wb_path = str(rootpath) + '/ECR_data/ecr_data_library.xlsx'
+    book = load_workbook(wb_path)
+    writer = pd.ExcelWriter(wb_path, engine='openpyxl')
+    writer.book = book
+    df_summary.to_excel(writer, sheet_name=sample, index=False)
+
+    writer.save()
+    writer.close()
 
     if os.path.isfile(library_name):
         with open(library_name, newline='') as file:
             if file.read().find(file_identifier) == -1:
-                df_import2.to_csv(library_name, mode='a', header=False)
+                df_import2.to_csv(library_name, mode='a', header=False, sep='\t')
             else:
                 tk.messagebox.showinfo(title='Redundanz',
                                        message='Datei bereits im Archiv')
     else:
-        df_import2.to_csv(library_name, mode='w', header=True)
+        df_import2.to_csv(library_name, mode='w', header=True, sep='\t')
 
     # Formatiere Plot
     table_data = [
@@ -802,7 +863,6 @@ def store_library(file, sample, gdl1, gdl2, spec, ref, thickness, gdl_age, comme
 
     table = a[0][0].table(cellText=table_data, colWidths=[.2, .5], loc='bottom',
                       bbox=[0.45, 0.75, 0.5, 0.2])
-
 
     for (row, col), cell in table.get_celld().items():
         if col == 0:
@@ -815,7 +875,25 @@ def store_library(file, sample, gdl1, gdl2, spec, ref, thickness, gdl_age, comme
             cell.set_text_props(ma='right')
 
     frame.destroy()
+
+
+
+    mng = plt.get_current_fig_manager()
+    mng.full_screen_toggle()
+
+    fig1 = plt.gcf()
+
     plt.show()
+
+    png_path = str(rootpath) + '/ECR_data/PNG/' + sample.strip(' ') + '.png'
+    fig1.savefig(png_path, bbox_inches='tight')
+
+
+
+
+
+
+
 
 
 

@@ -5,14 +5,14 @@ from store_data import store_library
 def import_data(frame, file):
     docu = tk.Toplevel(frame)
     docu.title("Documentation")
-    docu.geometry("{}x{}".format(600, 300))
-    docu.maxsize(600, 300)
+    docu.geometry("{}x{}".format(800, 300))
+    docu.maxsize(800, 300)
     docu.config(bg="lightgrey")
     docu.iconbitmap('zbt_logo.ico')
 
-    top = Frame(docu, bg='lightgrey', width=600, height=275)
+    top = Frame(docu, bg='lightgrey', width=800, height=275)
     top.grid_propagate(0)
-    bot = Frame(docu, bg='grey', width=600, height=25)
+    bot = Frame(docu, bg='grey', width=800, height=25)
     bot.grid_propagate(0)
 
     #docu.grid_rowconfigure(0, weight=1)
@@ -42,15 +42,15 @@ def import_data(frame, file):
     if file == '':
         docu.destroy()
 
-    filesplit = file.split(' ')[0]
-    name = filesplit.split('/')[-1]
+    #filesplit = file.split(' ')[0]
+    name = file.split('/')[-1]
 
     #label1 = tk.Label(docu, text="Datum")
 
     label2 = tk.Label(top, pady=10, text="Sample:", bg='lightgrey')
     label3 = tk.Label(top, pady=10, text="GDL:", bg='lightgrey')
     label4 = tk.Label(top, pady=10, text="Method:", bg='lightgrey')
-    label5 = tk.Label(bot, text='Selection: ' + file, bg='grey')
+    label5 = tk.Label(bot, text='Selection: ' + name, bg='grey')
     label6 = tk.Label(top, pady=10, text="Thickness [mm]:", bg='lightgrey')
     label7 = tk.Label(top, pady=10, text="GDL-Alter:", bg='lightgrey')
     label8 = tk.Label(top, pady=10, text="Kommentar:", bg='lightgrey')
@@ -64,7 +64,7 @@ def import_data(frame, file):
     entry4 = tk.Entry(top, width=30, bd=5)
     entry4.insert(0, '15')
     entry5 = tk.Entry(top, width=30, bd=5)
-    entry5.insert(0, 'U=100V / t=30s / Ra=0.219')
+    entry5.insert(0, '')
 
     button1 = \
         tk.Button(top, text='OK', width=20, bd=5,
