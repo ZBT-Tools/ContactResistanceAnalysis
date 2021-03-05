@@ -233,7 +233,7 @@ def store_library(file, sample, gdl1, gdl2, spec, ref, thickness, gdl_age, comme
         if v >= rec:
 
             df_input[cycle].loc[i] = z
-
+            print(df_input.loc[v, 'current[mA]'],df_input.loc[v, 'current[mA]'] < 600)
             if df_input.loc[v, 'current[mA]'] < 600:
                 rec = v
         else:
@@ -340,7 +340,7 @@ def store_library(file, sample, gdl1, gdl2, spec, ref, thickness, gdl_age, comme
 
         # seperate measurement-df into different cycles
         for c in cycles:
-
+            print('cycle :' + str(c))
             # df-slice of measurement-df with single 'cycle'
             df_t2_c = df_t1[df_t1[cycle] == c]
 
