@@ -1,0 +1,17 @@
+Gesamtwiderstand @5bar [mOhm*cm2]	Bulkwiderstand @5bar [mOhm*cm2]	Durchgangswiderstand @5bar [mOhm*cm2]	Kontaktwiderstand @5bar [mOhm*cm2]	Korrekturwert GDL @5bar/cycle [mOhm*cm2]	Gesamtwiderstand @10bar [mOhm*cm2]	Bulkwiderstand @10bar [mOhm*cm2]	Durchgangswiderstand @10bar [mOhm*cm2]	Kontaktwiderstand @10bar [mOhm*cm2]	Korrekturwert GDL @10bar/cycle [mOhm*cm2]	Gesamtwiderstand @20bar [mOhm*cm2]	Bulkwiderstand @20bar [mOhm*cm2]	Durchgangswiderstand @20bar [mOhm*cm2]	Kontaktwiderstand @20bar [mOhm*cm2]	Korrekturwert GDL @20bar/cycle [mOhm*cm2]	Gesamtwiderstand @30bar [mOhm*cm2]	Bulkwiderstand @30bar [mOhm*cm2]	Durchgangswiderstand @30bar [mOhm*cm2]	Kontaktwiderstand @30bar [mOhm*cm2]	Korrekturwert GDL @30bar/cycle [mOhm*cm2]
+54.29593037	-0.03463986	44.34722533	22.19093259	13.76237532															
+54.49048048	0.01096096	44.54177543	22.26540724	13.76237532															
+54.46024283	0.0047992	44.51153778	22.25336929	13.76237532															
+54.44190345	0.00152326	44.4931984	22.24583757	13.76237532															
+					34.83303721	-0.00656663	27.59034392	13.79845528	10.01905905										
+					34.89300901	0.01234535	27.65031572	13.81898519	10.01905905										
+					34.86182722	0.01864443	27.61913393	13.80024475	10.01905905										
+					34.83322673	-0.00035586	27.59053344	13.79544465	10.01905905										
+										20.32604442	0.05077431	15.14734967	7.54828768	7.16386107					
+										20.43545646	0.01412613	15.25676171	7.62131779	7.16386107					
+										20.43334623	-0.00429887	15.25465148	7.62947517	7.16386107					
+										20.42458229	0.0026098	15.24588754	7.62163887	7.16386107					
+															14.65003001	0.04603241	10.42834123	5.19115441	5.84000281
+															14.74495195	0.01293994	10.52326317	5.25516162	5.84000281
+															14.73234356	0.02259907	10.51065478	5.24402786	5.84000281
+															14.72381682	0.01764865	10.50212804	5.24223969	5.84000281
