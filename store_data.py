@@ -55,6 +55,7 @@ def store_library(file, sample, gdl1, gdl2, spec, ref, thickness, gdl_age, comme
     for i in range(1, 31):
         if (i in pressure_ref) == False:
             df_input = df_input[df_input['pressure_rounded[bar]'] != i]
+            df_input.reset_index(drop=True)
 
     # df_input.insert(len(df_input.columns), column='current_rounded[mA]',
     #                 value=current_rounded)
@@ -227,13 +228,28 @@ def store_library(file, sample, gdl1, gdl2, spec, ref, thickness, gdl_age, comme
     # seperate measurements by cycles
     z = int(gdl_age)
 
-    print(df_input['current[mA]'])
-    rec = 0
-    for i, v in df_input['pressure_rounded[bar]'].items():
-        if v >= rec:
+    df_input['current[mA]'].round(-2)
 
+    rec = 0
+    # for i, v in df_input['pressure_rounded[bar]'].items():
+    #     print(i)
+    #     if v >= rec:
+    #
+    #         df_input[cycle].loc[i] = z
+    #         # if df_input.loc[v, 'current[mA]'] < 600:
+    #         rec = v
+    #     else:
+    #         z += 1
+    #         rec = 0
+    #         print(i)
+    #         df_input[cycle].loc[i] = z
+
+    for i, v in df_input['pressure_rounded[bar]'].items():
+        print(list(df_input['pressure_rounded[bar]'].items()))
+
+        if v >= rec:
             df_input[cycle].loc[i] = z
-            print(df_input.loc[v, 'current[mA]'],df_input.loc[v, 'current[mA]'] < 600)
+            #df_input.loc[i, cycle] = z
             if df_input.loc[v, 'current[mA]'] < 600:
                 rec = v
         else:
@@ -275,6 +291,7 @@ def store_library(file, sample, gdl1, gdl2, spec, ref, thickness, gdl_age, comme
                     df_input_2.loc[df_input_2['pressure_rounded[bar]'] == p, corr] = correction_value
                     df_input_2.loc[df_input_2['pressure_rounded[bar]'] == p, as_corr] = df_h23_2['as_main_resistance[mOhm*cm2]'].mean()
                     df_corr_list.append(df_input_2)
+
                 else:
                     p_nearest = min(pressure_ref, key=lambda x:abs(x-p))
 
@@ -300,12 +317,24 @@ def store_library(file, sample, gdl1, gdl2, spec, ref, thickness, gdl_age, comme
             df_sgl29_1 = df_sgl29[df_sgl29['cycle'] == c]
 
             for p in pressures:
-                df_input_2 = df_input_1[
-                    df_input_1['pressure_rounded[bar]'] == p]
-                df_sgl29_2 = df_sgl29_1[df_sgl29_1['pressure_rounded[bar]'] == p]
-                correction_value = df_sgl29_2['as_main_resistance[mOhm*cm2]'].mean()
-                df_input_2.loc[df_input_2['pressure_rounded[bar]'] == p, corr] = correction_value
-                df_corr_list.append(df_input_2)
+
+                if p in pressure_ref:
+                    df_input_2 = df_input_1[df_input_1['pressure_rounded[bar]'] == p]
+                    df_sgl29_2 = df_sgl29_1[df_sgl29_1['pressure_rounded[bar]'] == p]
+                    correction_value = df_sgl29_2['as_main_resistance[mOhm*cm2]'].mean() / df_sgl29_2['contact_area[cm2]'].mean()
+                    df_input_2.loc[df_input_2['pressure_rounded[bar]'] == p, corr] = correction_value
+                    df_input_2.loc[df_input_2['pressure_rounded[bar]'] == p, as_corr] = df_sgl29_2['as_main_resistance[mOhm*cm2]'].mean()
+                    df_corr_list.append(df_input_2)
+
+                else:
+                    p_nearest = min(pressure_ref, key=lambda x: abs(x - p))
+
+                    df_input_2 = df_input_1[df_input_1['pressure_rounded[bar]'] == p_nearest]
+                    df_sgl29_2 = df_sgl29_1[df_sgl29_1['pressure_rounded[bar]'] == p_nearest]
+                    correction_value = df_sgl29_2['as_main_resistance[mOhm*cm2]'].mean() / df_sgl29_2['contact_area[cm2]'].mean()
+                    df_input_2.loc[df_input_2['pressure_rounded[bar]'] == p_nearest, corr] = correction_value
+                    df_input_2.loc[df_input_2['pressure_rounded[bar]'] == p_nearest, as_corr] = df_sgl29_2['as_main_resistance[mOhm*cm2]'].mean()
+                    df_corr_list.append(df_input_2)
 
         df_input = pd.concat(df_corr_list)
 
@@ -340,7 +369,7 @@ def store_library(file, sample, gdl1, gdl2, spec, ref, thickness, gdl_age, comme
 
         # seperate measurement-df into different cycles
         for c in cycles:
-            print('cycle :' + str(c))
+
             # df-slice of measurement-df with single 'cycle'
             df_t2_c = df_t1[df_t1[cycle] == c]
 
@@ -391,7 +420,7 @@ def store_library(file, sample, gdl1, gdl2, spec, ref, thickness, gdl_age, comme
             # seperate 'cycle'-df into different pressures
 
             for p in pressures:
-                print(p)
+
                 #print('measurement: ' + str(m), 'cycle: ' + str(c), 'pressure: ' + str(p))
                 # df-slice of 'cycle'-df with single pressure
 
@@ -563,7 +592,8 @@ def store_library(file, sample, gdl1, gdl2, spec, ref, thickness, gdl_age, comme
                 df_t3_p.loc[df_t3_p['pressure_rounded[bar]'] == p, res_contact_as_mean_col] = res_contact_as_mean
                 df_t3_p.loc[df_t3_p['pressure_rounded[bar]'] == p, res_contact_as_error_col] = res_contact_as_error
 
-                print(p, df_t3_p.loc[df_t3_p['pressure_rounded[bar]'] == p, con_main_vs_col])
+                print(p)
+                print(df_t3_p[df_t3_p['pressure_rounded[bar]'] == p])
 
                 df_t3_p.loc[df_t3_p['pressure_rounded[bar]'] == p, con_main_vs_col] = con_main_vs
                 df_t3_p.loc[df_t3_p['pressure_rounded[bar]'] == p, con_main_vs_mean_col] = con_main_vs_mean
